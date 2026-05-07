@@ -1,0 +1,178 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Josefin+Sans:wght@200;300;400&family=DM+Sans:wght@300;400;500&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: #0D0D0D;
+  color: rgba(255,255,255,0.92);
+  font-family: 'DM Sans', sans-serif;
+  overflow-x: hidden;
+  cursor: crosshair;
+}
+::selection { background: #C9A84C; color: #000; }
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #C9A84C; }
+.gold-rule { width: 40px; height: 0.5px; background: #C9A84C; display: block; }
+.eyebrow {
+  font-family: 'Josefin Sans', sans-serif;
+  font-size: 9px; letter-spacing: 0.35em; text-transform: uppercase; color: #C9A84C;
+  display: flex; align-items: center; gap: 12px;
+}
+.eyebrow::before { content: ''; width: 24px; height: 0.5px; background: #C9A84C; flex-shrink: 0; }
+.grid-pattern {
+  background-image:
+    repeating-linear-gradient(0deg, transparent, transparent 59px, rgba(201,168,76,0.05) 60px),
+    repeating-linear-gradient(90deg, transparent, transparent 59px, rgba(201,168,76,0.05) 60px);
+}
+button { cursor: pointer; border-radius: 0; }
+a { text-decoration: none; color: inherit; }
+:focus-visible { outline: 1px solid rgba(201, 168, 76, 0.6); outline-offset: 2px; }
+
+.auth-input::placeholder {
+  color: rgba(255,255,255,0.28);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 300;
+  font-style: italic;
+  letter-spacing: 0.02em;
+  text-align: left;
+}
+
+:root {
+  --admin-sidebar-width: 240px;
+  --admin-topbar-height: 60px;
+}
+@media (max-width: 767px) {
+  :root { --admin-sidebar-width: 0px; }
+}
+
+.admin-main {
+  margin-left: var(--admin-sidebar-width);
+  margin-top: var(--admin-topbar-height);
+  min-height: calc(100vh - var(--admin-topbar-height));
+  padding: 32px;
+  background: #0D0D0D;
+  box-sizing: border-box;
+}
+@media (max-width: 767px) {
+  .admin-main { padding: 20px 16px; }
+  .admin-preview { display: none; }
+}
+
+.admin-hamburger { display: flex; }
+@media (min-width: 768px) {
+  .admin-hamburger { display: none !important; }
+}
+
+.admin-topbar-left { padding-left: 256px; }
+@media (max-width: 767px) {
+  .admin-topbar-left { padding-left: 16px; }
+}
+
+.admin-table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+@media (max-width: 767px) {
+  .admin-col-hide-mobile { display: none; }
+  .admin-col-hide-tablet { display: none; }
+}
+@media (min-width: 768px) and (max-width: 1023px) {
+  .admin-col-hide-tablet { display: none; }
+}
+
+.admin-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+}
+@media (max-width: 1023px) {
+  .admin-stat-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+.admin-two-col {
+  display: grid;
+  grid-template-columns: 60% 40%;
+  gap: 1px;
+}
+@media (max-width: 767px) {
+  .admin-two-col { grid-template-columns: 1fr; }
+}
+
+.admin-charts-row {
+  display: grid;
+  grid-template-columns: 60% 40%;
+  gap: 1px;
+  margin-top: 1px;
+}
+@media (max-width: 767px) {
+  .admin-charts-row { grid-template-columns: 1fr; }
+}
+
+.admin-toggle-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+@media (max-width: 640px) {
+  .admin-toggle-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+.admin-fab { display: none; }
+@media (max-width: 767px) {
+  .admin-fab {
+    display: flex;
+    position: fixed;
+    bottom: 24px;
+    right: 20px;
+    width: 48px;
+    height: 48px;
+    background: #C9A84C;
+    color: #000;
+    font-size: 24px;
+    font-weight: 300;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 60;
+    border: none;
+  }
+  .admin-input { font-size: 16px !important; }
+}
+
+.admin-filters-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding: 0 32px;
+  height: 52px;
+}
+@media (max-width: 767px) {
+  .admin-filters-bar {
+    flex-wrap: wrap;
+    height: auto;
+    padding: 12px 16px;
+    gap: 8px;
+  }
+}
+
+.admin-status-pills {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  flex-shrink: 0;
+}
+.admin-status-pills::-webkit-scrollbar { display: none; }
+
+@media (max-width: 400px) {
+  .admin-store-link span { display: none; }
+}

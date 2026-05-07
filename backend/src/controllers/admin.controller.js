@@ -1,0 +1,131 @@
+import Category from '../models/Category.js'
+import Order from '../models/Order.js'
+import Product from '../models/Product.js'
+import SiteSettings from '../models/SiteSettings.js'
+import User from '../models/User.js'
+import { deleteLocalUpload, toPublicUploadUrl } from '../utils/upload.utils.js'
+import fs from 'fs'
+import path from 'path'
+import { fileURLToPath } from 'url'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+
+export const getAdminProducts = async (_req, res) => {
+  const products = await Product.find().populate('category').sort({ createdAt: -1 })
+  res.json({ success: true, data: products, message: 'Produits admin' })
+}
+
+export const createAdminProduct = async (req, res) => {
+  const body = { ...req.body }
+  body.tags = body.tags ? JSON.parse(body.tags) : []
+  const files = req.files || []
+  body.images = files.map((f) => toPublicUploadUrl(f.path))
+  const product = await Product.create(body)
+  res.status(201).json({ success: true, data: product, message: 'Produit créé' })
+}
+
+export const updateAdminProduct = async (req, res) => {
+  const product = await Product.findById(req.params.id)
+  if (!product) return res.status(404).json({ success: false, message: 'Produit introuvable' })
+  const body = { ...req.body }
+  if (body.tags) body.tags = JSON.parse(body.tags)
+  const existingImages = body.existingImages ? JSON.parse(body.existingImages) : product.images || []
+  const newImages = (req.files || []).map((f) => toPublicUploadUrl(f.path))
+  body.images = [...existingImages, ...newImages].slice(0, 4)
+  const removed = (product.images || []).filter((img) => !body.images.includes(img))
+  await Promise.all(removed.map((img) => deleteLocalUpload(img)))
+  delete body.existingImages
+  const updated = await Product.findByIdAndUpdate(req.params.id, body, { new: true })
+  res.json({ success: true, data: updated, message: 'Produit mis à jour' })
+}
+
+export const softDeleteProduct = async (req, res) => {
+  const p = await Product.findByIdAndUpdate(req.params.id, { isAvailable: false }, { new: true })
+  res.json({ success: true, data: p, message: 'Produit masqué' })
+}
+
+export const toggleProduct = async (req, res) => {
+  const p = await Product.findById(req.params.id)
+  p.isAvailable = !p.isAvailable
+  await p.save()
+  res.json({ success: true, data: p, message: 'Disponibilité mise à jour' })
+}
+
+export const getAdminCategories = async (_req, res) => res.json({ success: true, data: await Category.find().sort({ order: 1 }), message: 'Catégories' })
+export const createCategory = async (req, res) => res.status(201).json({ success: true, data: await Category.create(req.body), message: 'Catégorie créée' })
+export const updateCategory = async (req, res) => res.json({ success: true, data: await Category.findByIdAndUpdate(req.params.id, req.body, { new: true }), message: 'Catégorie mise à jour' })
+export const deleteCategory = async (req, res) => res.json({ success: true, data: await Category.findByIdAndDelete(req.params.id), message: 'Catégorie supprimée' })
+export const reorderCategories = async (req, res) => {
+  await Promise.all(req.body.map((i) => Category.findByIdAndUpdate(i.id, { order: i.order })))
+  res.json({ success: true, data: await Category.find().sort({ order: 1 }), message: 'Ordre sauvegardé' })
+}
+
+export const getAdminOrders = async (req, res) => {
+  const { status, search, page = 1, limit = 10 } = req.query
+  const q = {}
+  if (status) q.status = status
+  if (search) q.$or = [{ orderNumber: { $regex: search, $options: 'i' } }, { 'customer.fullName': { $regex: search, $options: 'i' } }, { 'customer.phone': { $regex: search, $options: 'i' } }]
+  const total = await Order.countDocuments(q)
+  const orders = await Order.find(q).sort({ createdAt: -1 }).limit(Number(limit)).skip((Number(page) - 1) * Number(limit))
+  res.json({ success: true, data: { orders, total, page: Number(page), totalPages: Math.ceil(total / Number(limit)) }, message: 'Commandes admin' })
+}
+export const getAdminOrderById = async (req, res) => res.json({ success: true, data: await Order.findById(req.params.id).populate('items.product'), message: 'Détail commande' })
+export const updateOrderStatus = async (req, res) => {
+  const { status, note } = req.body
+  const order = await Order.findById(req.params.id)
+  order.status = status
+  order.statusHistory.push({ status, note: note || '' })
+  await order.save()
+  res.json({ success: true, data: order, message: 'Statut mis à jour' })
+}
+export const updateOrderNotes = async (req, res) => res.json({ success: true, data: await Order.findByIdAndUpdate(req.params.id, { notes: req.body.notes || '' }, { new: true }), message: 'Notes mises à jour' })
+
+export const getUsers = async (req, res) => {
+  const { page = 1, limit = 20, search } = req.query
+  const q = { role: 'customer' }
+  if (search) q.$or = [{ firstName: { $regex: search, $options: 'i' } }, { lastName: { $regex: search, $options: 'i' } }, { email: { $regex: search, $options: 'i' } }, { phone: { $regex: search, $options: 'i' } }]
+  const total = await User.countDocuments(q)
+  const users = await User.find(q).sort({ createdAt: -1 }).limit(Number(limit)).skip((Number(page) - 1) * Number(limit))
+  res.json({ success: true, data: { users, total, page: Number(page), totalPages: Math.ceil(total / Number(limit)) }, message: 'Clients' })
+}
+export const getUserById = async (req, res) => res.json({ success: true, data: { user: await User.findById(req.params.id), orders: await Order.find({ user: req.params.id }).sort({ createdAt: -1 }) }, message: 'Profil client' })
+export const patchUserRole = async (req, res) => res.json({ success: true, data: await User.findByIdAndUpdate(req.params.id, { role: req.body.role }, { new: true }), message: 'Rôle mis à jour' })
+
+const walkFiles = (dir) => {
+  if (!fs.existsSync(dir)) return []
+  const entries = fs.readdirSync(dir, { withFileTypes: true })
+  return entries.flatMap((entry) => {
+    const full = path.join(dir, entry.name)
+    if (entry.isDirectory()) return walkFiles(full)
+    return [full]
+  })
+}
+
+export const cleanupOrphanUploads = async (_req, res) => {
+  const [products, settings] = await Promise.all([
+    Product.find({}, { images: 1 }),
+    SiteSettings.findOne({ key: 'main' }),
+  ])
+
+  const referenced = new Set()
+  products.forEach((p) => (p.images || []).forEach((img) => referenced.add(img)))
+  if (settings?.hero?.imageUrl) referenced.add(settings.hero.imageUrl)
+
+  const uploadsDir = path.join(__dirname, '../../uploads')
+  const allFiles = walkFiles(uploadsDir)
+  const allPublicUrls = allFiles.map((f) => toPublicUploadUrl(f))
+
+  const orphanUrls = allPublicUrls.filter((url) => !referenced.has(url))
+  await Promise.all(orphanUrls.map((url) => deleteLocalUpload(url)))
+
+  return res.json({
+    success: true,
+    data: {
+      scanned: allPublicUrls.length,
+      referenced: referenced.size,
+      deleted: orphanUrls.length,
+      deletedFiles: orphanUrls,
+    },
+    message: 'Nettoyage des uploads orphelins terminé',
+  })
+}
