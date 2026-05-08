@@ -12,7 +12,7 @@ const AdminLayout = () => {
   }, [])
   return (
     <AdminUIProvider>
-      <div style={{ minHeight: '100vh', background: '#0D0D0D' }}>
+      <div style={{ minHeight: '100vh', background: '#0F0F0F' }}>
         <AdminSidebar pendingCount={pendingCount} />
         <AdminTopbar />
         <main className="admin-main">

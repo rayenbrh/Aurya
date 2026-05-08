@@ -1,73 +1,131 @@
-// TO ADD YOUR LOGO: place your logo image file in the /public folder
-// and name it "logo.png" (or update the src path in LogoMark.jsx)
 import { AnimatePresence, motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
-import { FiSearch, FiShoppingBag } from 'react-icons/fi'
-import { useCart } from '../../hooks/useCart'
+import { FiShoppingBag } from 'react-icons/fi'
+import { useCart } from '../../context/CartContext'
 import { useAuth } from '../../context/AuthContext'
-import LogoFull from '../ui/LogoFull'
-import LogoMark from '../ui/LogoMark'
 import MobileNav from './MobileNav'
 
-const Navbar = ({ onCartOpen }) => {
-  const [open, setOpen] = useState(false)
-  const [scrolled, setScrolled] = useState(false)
-  const { totalItems } = useCart()
-  const { user, logout } = useAuth()
-  const navigate = useNavigate()
-  const isAuthenticated = Boolean(user)
+const navLinks = [
+  { to: '/',           label: 'Home',        end: true },
+  { to: '/collections',label: 'Collections', end: false },
+  { to: '/a-propos',   label: 'À propos',    end: false },
+  { to: '/contact',    label: 'Contact',     end: false },
+]
+
+export default function Navbar({ onCartOpen }) {
+  const [scrolled, setScrolled]     = useState(false)
+  const [mobileOpen, setMobileOpen] = useState(false)
+  const { totalItems }              = useCart()
+  const { user, logout }            = useAuth()
+  const navigate                    = useNavigate()
+  const isAuthenticated             = Boolean(user)
+
   const initials = user?.firstName
-    ? `${user.firstName || ''} ${user.lastName || ''}`
-        .trim()
-        .split(' ')
-        .filter(Boolean)
-        .slice(0, 2)
-        .map((n) => n[0]?.toUpperCase() || '')
-        .join('')
+    ? `${user.firstName[0] ?? ''}${user.lastName?.[0] ?? ''}`.toUpperCase()
     : 'AD'
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 80)
+    const onScroll = () => setScrolled(window.scrollY > 8)
+    onScroll()
     window.addEventListener('scroll', onScroll)
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
   return (
     <>
-      <motion.header initial={{ y: -60, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.6, delay: 0.1 }} className={`fixed left-0 right-0 top-0 z-[200] h-[58px] border-b border-[0.5px] bg-[rgba(13,13,13,0.94)] px-5 backdrop-blur-xl transition-colors duration-500 md:h-[68px] md:px-16 ${scrolled ? 'border-[rgba(201,168,76,0.35)]' : 'border-[rgba(201,168,76,0.18)]'}`}>
-        <div className="mx-auto flex h-full max-w-[1440px] items-center justify-between">
-          <Link aria-label="Accueil Aurya Deco" to="/" className="hidden md:block"><LogoFull /></Link>
-          <Link aria-label="Accueil Aurya Deco" to="/" className="md:hidden"><LogoMark size={32} /></Link>
-          <nav className="hidden gap-8 md:flex">
-            {[
-              ['/collections', 'Collections'],
-              ['/univers', 'Univers'],
-              ['/contact', 'Contact'],
-            ].map(([p, label]) => (
-              <NavLink key={p} to={p} className={({ isActive }) => `relative font-josefin text-[10px] uppercase tracking-[0.2em] transition-colors ${isActive ? 'text-gold after:absolute after:-bottom-1 after:left-0 after:h-[0.5px] after:w-full after:bg-gold' : 'text-[rgba(255,255,255,0.45)] hover:text-gold'}`}>{label}</NavLink>
+      <motion.header
+        initial={{ y: -60, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.55, ease: [0.76, 0, 0.24, 1] }}
+        className="fixed left-0 right-0 top-0 z-50 h-[72px] border-b border-nude/40 transition-all duration-300"
+        style={{
+          background: scrolled ? 'rgba(247,244,239,0.97)' : 'rgba(247,244,239,0.93)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          boxShadow: scrolled ? '0 1px 20px rgba(42,31,26,0.07)' : 'none',
+        }}
+      >
+        <div className="mx-auto flex h-full max-w-[1440px] items-center justify-between px-5 md:px-10">
+
+          {/* Logo */}
+          <Link
+            to="/"
+            className="flex items-center gap-2.5 transition-opacity hover:opacity-75"
+          >
+            <img
+              src="/logo.png"
+              alt=""
+              aria-hidden="true"
+              className="h-8 w-8 object-contain"
+              onError={(e) => { e.currentTarget.style.display = 'none' }}
+            />
+            <span className="font-cormorant text-[26px] italic text-ink">Aurya</span>
+          </Link>
+
+          {/* Desktop nav */}
+          <nav className="hidden items-center gap-10 md:flex">
+            {navLinks.map(({ to, label, end }) => (
+              <NavLink
+                key={to}
+                to={to}
+                end={end}
+                className={({ isActive }) =>
+                  `font-josefin text-[10px] uppercase tracking-[0.22em] transition-colors duration-200 ${
+                    isActive
+                      ? 'text-bark relative after:absolute after:-bottom-1 after:left-0 after:h-[1.5px] after:w-full after:bg-bark after:rounded-pill'
+                      : 'text-stone hover:text-ink'
+                  }`
+                }
+              >
+                {label}
+              </NavLink>
             ))}
           </nav>
-          <div className="flex items-center gap-3">
-            <button aria-label="Rechercher" className="hidden text-[rgba(255,255,255,0.45)] hover:text-gold md:inline-flex">
-              <FiSearch size={18} />
+
+          {/* Right actions */}
+          <div className="flex items-center gap-2 md:gap-3">
+
+            {/* Cart */}
+            <button
+              type="button"
+              aria-label="Panier"
+              onClick={onCartOpen}
+              className="relative grid h-9 w-9 place-items-center text-stone transition-colors hover:text-bark"
+            >
+              <FiShoppingBag size={18} />
+              <AnimatePresence>
+                {totalItems > 0 && (
+                  <motion.span
+                    key={totalItems}
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0, opacity: 0 }}
+                    transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+                    className="absolute -right-1 -top-1 grid h-4 w-4 place-items-center rounded-full bg-bark font-josefin text-[7px] text-cream"
+                  >
+                    {totalItems > 99 ? '99+' : totalItems}
+                  </motion.span>
+                )}
+              </AnimatePresence>
             </button>
-            <button aria-label="Ouvrir le panier" onClick={onCartOpen} className="relative text-[rgba(255,255,255,0.45)] hover:text-gold"><FiShoppingBag size={18} />
-              <AnimatePresence>{totalItems > 0 && <motion.span key={totalItems} initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }} className="absolute -right-2 -top-2 grid h-4 w-4 place-items-center rounded-full bg-gold font-josefin text-[8px] text-black">{totalItems}</motion.span>}</AnimatePresence>
-            </button>
+
+            {/* Auth — desktop only */}
             {!isAuthenticated ? (
-              <div className="hidden items-center gap-[10px] md:flex">
+              <div className="hidden items-center gap-2 md:flex">
                 <button
-                  aria-label="Aller à la connexion"
+                  type="button"
+                  aria-label="Connexion"
                   onClick={() => navigate('/connexion')}
-                  className="border border-[0.5px] border-[rgba(201,168,76,0.35)] px-[18px] py-2 font-josefin text-[9px] uppercase tracking-[0.2em] text-[rgba(255,255,255,0.7)] transition-colors hover:border-gold hover:text-gold"
+                  className="border border-bark/30 px-4 py-2 font-josefin text-[9px] uppercase tracking-[0.22em] text-bark transition-all hover:bg-bark hover:text-cream"
                 >
                   Connexion
                 </button>
                 <button
-                  aria-label="Aller à l'inscription"
+                  type="button"
+                  aria-label="S'inscrire"
                   onClick={() => navigate('/inscription')}
-                  className="bg-gold px-[18px] py-2 font-josefin text-[9px] uppercase tracking-[0.2em] text-black transition-colors hover:bg-gold-light"
+                  className="bg-bark px-4 py-2 font-josefin text-[9px] uppercase tracking-[0.22em] text-cream transition-colors hover:bg-bark-light"
                 >
                   S'inscrire
                 </button>
@@ -75,32 +133,40 @@ const Navbar = ({ onCartOpen }) => {
             ) : (
               <div className="hidden items-center gap-3 md:flex">
                 <button
-                  aria-label="Aller au compte"
+                  type="button"
+                  aria-label="Mon compte"
                   onClick={() => navigate('/compte')}
-                  className="grid h-8 w-8 place-items-center rounded-full border border-[0.5px] border-[rgba(201,168,76,0.4)] bg-[rgba(201,168,76,0.15)] font-josefin text-[10px] tracking-[0.1em] text-gold"
+                  className="grid h-8 w-8 place-items-center rounded-full bg-nude font-josefin text-[9px] tracking-[0.08em] text-bark border border-nude/80 transition-colors hover:border-bark/40"
                 >
                   {initials}
                 </button>
                 <button
+                  type="button"
                   aria-label="Se déconnecter"
                   onClick={logout}
-                  className="font-josefin text-[8px] uppercase tracking-[0.15em] text-[rgba(255,255,255,0.35)] transition-colors hover:text-[rgba(201,168,76,0.7)]"
+                  className="font-josefin text-[8px] uppercase tracking-[0.18em] text-stone-light transition-colors hover:text-bark"
                 >
                   Déconnexion
                 </button>
               </div>
             )}
-            <button aria-label="Menu mobile" className="relative h-9 w-9 md:hidden" onClick={() => setOpen((v) => !v)}>
-              <span className={`absolute left-[9px] top-[10px] h-[1.5px] w-[18px] bg-gold transition-all duration-300 ${open ? 'translate-y-[6.5px] rotate-45' : ''}`} />
-              <span className={`absolute left-[9px] top-[16px] h-[1.5px] w-[18px] bg-gold transition-all duration-300 ${open ? 'scale-x-0 opacity-0' : ''}`} />
-              <span className={`absolute left-[9px] top-[22px] h-[1.5px] w-[18px] bg-gold transition-all duration-300 ${open ? '-translate-y-[6.5px] -rotate-45' : ''}`} />
+
+            {/* Mobile hamburger */}
+            <button
+              type="button"
+              aria-label="Menu"
+              className="relative h-9 w-9 md:hidden"
+              onClick={() => setMobileOpen((v) => !v)}
+            >
+              <span className={`absolute left-[9px] top-[11px] h-[1.5px] w-[18px] bg-ink transition-all duration-300 ${mobileOpen ? 'translate-y-[6px] rotate-45' : ''}`} />
+              <span className={`absolute left-[9px] top-[17px] h-[1.5px] w-[18px] bg-ink transition-all duration-300 ${mobileOpen ? 'scale-x-0 opacity-0' : ''}`} />
+              <span className={`absolute left-[9px] top-[23px] h-[1.5px] w-[18px] bg-ink transition-all duration-300 ${mobileOpen ? '-translate-y-[6px] -rotate-45' : ''}`} />
             </button>
           </div>
         </div>
       </motion.header>
-      <MobileNav open={open} onClose={() => setOpen(false)} />
+
+      <MobileNav open={mobileOpen} onClose={() => setMobileOpen(false)} />
     </>
   )
 }
-
-export default Navbar

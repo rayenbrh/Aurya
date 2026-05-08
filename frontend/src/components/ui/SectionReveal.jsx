@@ -1,21 +1,27 @@
 import { motion, useReducedMotion } from 'framer-motion'
 import { useInView } from 'react-intersection-observer'
 
-const SectionReveal = ({ children, delay = 0, direction = 'up', distance = 36, className = '' }) => {
-  const [ref, inView] = useInView({ triggerOnce: true, threshold: 0.12 })
+export default function SectionReveal({ children, className = '', delay = 0 }) {
   const reduce = useReducedMotion()
-  const hidden = direction === 'left' ? { x: -distance, opacity: 0 } : direction === 'right' ? { x: distance, opacity: 0 } : { y: distance, opacity: 0 }
+  const { ref, inView } = useInView({ threshold: 0.12, triggerOnce: true })
+
+  if (reduce) {
+    return (
+      <div ref={ref} className={className}>
+        {children}
+      </div>
+    )
+  }
+
   return (
     <motion.div
       ref={ref}
       className={className}
-      initial={reduce ? false : hidden}
-      animate={inView || reduce ? { x: 0, y: 0, opacity: 1 } : hidden}
-      transition={{ duration: reduce ? 0 : 0.75, delay, ease: [0.76, 0, 0.24, 1] }}
+      initial={{ opacity: 0, y: 40 }}
+      animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 40 }}
+      transition={{ duration: 0.7, delay, ease: [0.25, 0.1, 0.25, 1] }}
     >
       {children}
     </motion.div>
   )
 }
-
-export default SectionReveal
