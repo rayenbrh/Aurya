@@ -2,7 +2,7 @@ import mongoose from 'mongoose'
 import { env } from './env.js'
 
 export async function connectDB() {
-  await mongoose.connect(env.MONGODB_URI)
+  await mongoose.connect(env.MONGODB_URI, { dbName: env.MONGODB_DB_NAME || 'auryadeco' })
   // eslint-disable-next-line no-console
   console.log('✅ MongoDB connecté')
 }

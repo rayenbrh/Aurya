@@ -6,6 +6,7 @@ export const env = {
   NODE_ENV: process.env.NODE_ENV || 'development',
   PORT: Number(process.env.PORT || 5000),
   MONGODB_URI: process.env.MONGODB_URI || 'mongodb://localhost:27017/auryadeco',
+  MONGODB_DB_NAME: process.env.MONGODB_DB_NAME || 'auryadeco',
   JWT_SECRET: process.env.JWT_SECRET || 'dev_secret_change_me_32_chars_minimum',
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || '7d',
   JWT_REFRESH_SECRET: process.env.JWT_REFRESH_SECRET || 'dev_refresh_secret_change_me',
