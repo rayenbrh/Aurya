@@ -11,7 +11,11 @@ export async function getSettings(_req, res) {
 }
 
 export async function patchHeroText(req, res) {
-  const settings = await SiteSettings.findOneAndUpdate({ key: 'main' }, { $set: { hero: { ...req.body } } }, { new: true, upsert: true })
+  const updates = {}
+  Object.entries(req.body).forEach(([k, v]) => {
+    if (k !== '_id') updates[`hero.${k}`] = v
+  })
+  const settings = await SiteSettings.findOneAndUpdate({ key: 'main' }, { $set: updates }, { new: true, upsert: true })
   return res.json({ success: true, data: settings.hero, message: 'Texte héro mis à jour' })
 }
 
@@ -27,16 +31,19 @@ export async function patchHeroImage(req, res) {
 }
 
 export async function patchMarquee(req, res) {
-  const settings = await SiteSettings.findOneAndUpdate({ key: 'main' }, { $set: { marquee: req.body } }, { new: true, upsert: true })
+  const updates = Object.fromEntries(Object.entries(req.body).filter(([k]) => k !== '_id').map(([k, v]) => [`marquee.${k}`, v]))
+  const settings = await SiteSettings.findOneAndUpdate({ key: 'main' }, { $set: updates }, { new: true, upsert: true })
   return res.json({ success: true, data: settings.marquee, message: 'Marquee mise à jour' })
 }
 
 export async function patchContact(req, res) {
-  const settings = await SiteSettings.findOneAndUpdate({ key: 'main' }, { $set: { contact: req.body } }, { new: true, upsert: true })
+  const updates = Object.fromEntries(Object.entries(req.body).filter(([k]) => k !== '_id').map(([k, v]) => [`contact.${k}`, v]))
+  const settings = await SiteSettings.findOneAndUpdate({ key: 'main' }, { $set: updates }, { new: true, upsert: true })
   return res.json({ success: true, data: settings.contact, message: 'Contact mis à jour' })
 }
 
 export async function patchSeo(req, res) {
-  const settings = await SiteSettings.findOneAndUpdate({ key: 'main' }, { $set: { seo: req.body } }, { new: true, upsert: true })
+  const updates = Object.fromEntries(Object.entries(req.body).filter(([k]) => k !== '_id').map(([k, v]) => [`seo.${k}`, v]))
+  const settings = await SiteSettings.findOneAndUpdate({ key: 'main' }, { $set: updates }, { new: true, upsert: true })
   return res.json({ success: true, data: settings.seo, message: 'SEO mis à jour' })
 }
