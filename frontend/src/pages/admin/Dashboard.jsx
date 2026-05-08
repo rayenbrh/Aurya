@@ -12,42 +12,52 @@ const Dashboard = () => {
   return (
     <section className="space-y-6">
       <div className="admin-stat-grid">
-        <StatCard label="Chiffre d'affaires" value={Math.round(summary?.revenueThisMonth || 0)} suffix=" TND" icon="💰" />
-        <StatCard label="Commandes ce mois" value={summary?.ordersThisMonth || 0} icon="📦" />
-        <StatCard label="En attente" value={summary?.pendingOrders || 0} icon="⏳" />
-        <StatCard label="Clients" value={summary?.totalCustomers || 0} icon="👥" />
+        <StatCard label="Chiffre d'affaires" value={Math.round(summary?.revenueThisMonth || 0)} suffix=" TND" icon="✦" />
+        <StatCard label="Commandes ce mois" value={summary?.ordersThisMonth || 0} icon="✦" />
+        <StatCard label="En attente" value={summary?.pendingOrders || 0} icon="✦" />
+        <StatCard label="Clients" value={summary?.totalCustomers || 0} icon="✦" />
       </div>
+
       <div className="admin-charts-row" style={{ gridTemplateColumns: '60% 40%' }}>
-        <div className="border border-[0.5px] border-[rgba(201,168,76,0.22)] bg-dark2 p-5">
-          <p className="mb-4 font-josefin text-[9px] uppercase tracking-[0.2em] text-gold">Commandes récentes</p>
-          <div className="space-y-2">
+        <div className="border border-nude/60 bg-cream p-5">
+          <p className="mb-4 font-josefin text-[9px] uppercase tracking-[0.2em] text-stone/50">Commandes récentes</p>
+          <div className="space-y-0">
             {(summary?.recentOrders || []).map((o) => (
-              <div key={o._id} className="flex items-center justify-between border-b border-[0.5px] border-[rgba(255,255,255,0.08)] py-2">
-                <p className="font-cormorant text-lg text-gold">{o.orderNumber}</p>
+              <div key={o._id} className="flex items-center justify-between border-b border-nude/40 py-2.5">
+                <p className="font-cormorant text-lg text-bark">{o.orderNumber}</p>
                 <StatusBadge status={o.status} />
               </div>
             ))}
+            {!summary?.recentOrders?.length && (
+              <p className="py-4 text-center font-josefin text-[8px] uppercase tracking-[0.15em] text-stone/30">Aucune commande</p>
+            )}
           </div>
         </div>
-        <div className="border border-[0.5px] border-[rgba(201,168,76,0.22)] bg-dark2 p-5">
-          <p className="mb-4 font-josefin text-[9px] uppercase tracking-[0.2em] text-gold">Top produits</p>
-          <div className="space-y-2">
+        <div className="border border-nude/60 bg-cream p-5">
+          <p className="mb-4 font-josefin text-[9px] uppercase tracking-[0.2em] text-stone/50">Top produits</p>
+          <div className="space-y-0">
             {(summary?.topProducts || []).map((p, idx) => (
-              <div key={p._id} className="flex items-center justify-between border-b border-[0.5px] border-[rgba(255,255,255,0.08)] py-2">
-                <p className="font-cormorant text-lg text-[rgba(201,168,76,0.45)]">{idx + 1}</p>
-                <p className="flex-1 pl-3">{p.name}</p>
-                <p className="font-josefin text-xs text-[rgba(255,255,255,0.45)]">{p.orderCount}</p>
+              <div key={p._id} className="flex items-center justify-between border-b border-nude/40 py-2.5">
+                <p className="font-cormorant text-lg text-nude">{idx + 1}</p>
+                <p className="flex-1 pl-3 font-josefin text-[9px] text-ink">{p.name}</p>
+                <p className="font-josefin text-[9px] text-stone/40">{p.orderCount}</p>
               </div>
             ))}
+            {!summary?.topProducts?.length && (
+              <p className="py-4 text-center font-josefin text-[8px] uppercase tracking-[0.15em] text-stone/30">Aucun produit</p>
+            )}
           </div>
         </div>
       </div>
+
       <div className="admin-two-col">
-        <div className="border border-[0.5px] border-[rgba(201,168,76,0.22)] bg-dark2 p-5">
-          <p className="font-josefin text-[9px] uppercase tracking-[0.2em] text-gold">Aperçu commandes</p>
+        <div className="border border-nude/60 bg-cream p-5">
+          <p className="font-josefin text-[9px] uppercase tracking-[0.2em] text-stone/50">Aperçu commandes</p>
+          <p className="mt-6 py-8 text-center font-josefin text-[8px] uppercase tracking-[0.15em] text-stone/25">Graphique à venir</p>
         </div>
-        <div className="border border-[0.5px] border-[rgba(201,168,76,0.22)] bg-dark2 p-5">
-          <p className="font-josefin text-[9px] uppercase tracking-[0.2em] text-gold">Aperçu produits</p>
+        <div className="border border-nude/60 bg-cream p-5">
+          <p className="font-josefin text-[9px] uppercase tracking-[0.2em] text-stone/50">Aperçu produits</p>
+          <p className="mt-6 py-8 text-center font-josefin text-[8px] uppercase tracking-[0.15em] text-stone/25">Graphique à venir</p>
         </div>
       </div>
     </section>

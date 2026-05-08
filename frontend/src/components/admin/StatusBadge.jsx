@@ -1,10 +1,10 @@
 const map = {
-  pending: 'bg-[rgba(201,168,76,0.15)] text-gold',
-  confirmed: 'bg-[rgba(74,144,217,0.15)] text-[#4A90D9]',
-  preparing: 'bg-[rgba(184,134,11,0.15)] text-[#B8860B]',
-  out_for_delivery: 'bg-[rgba(123,104,238,0.15)] text-[#7B68EE]',
-  delivered: 'bg-[rgba(46,125,82,0.15)] text-[#2E7D52]',
-  cancelled: 'bg-[rgba(192,57,43,0.15)] text-[#C0392B]',
+  pending:          'bg-[rgba(168,145,64,0.12)] text-[#8a7330]',
+  confirmed:        'bg-[rgba(74,144,217,0.12)] text-[#2563a8]',
+  preparing:        'bg-[rgba(184,134,11,0.12)] text-[#92690a]',
+  out_for_delivery: 'bg-[rgba(107,122,95,0.12)] text-[#4a5c3f]',
+  delivered:        'bg-[rgba(46,125,82,0.12)] text-[#1e6b43]',
+  cancelled:        'bg-[rgba(192,57,43,0.12)] text-[#9b2d1e]',
 }
 
 const StatusBadge = ({ status }) => (

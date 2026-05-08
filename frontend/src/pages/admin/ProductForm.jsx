@@ -2,24 +2,37 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { adminService } from '../../services/admin.service'
 
+const TOGGLES = [
+  { key: 'isAvailable', label: 'Disponible' },
+  { key: 'isNew',       label: 'Nouveau' },
+  { key: 'isBestSeller', label: 'Best-seller' },
+  { key: 'isFeatured',  label: 'Featured' },
+]
+
 const ProductForm = () => {
   const { id } = useParams()
   const isEdit = Boolean(id)
   const nav = useNavigate()
-  const [form, setForm] = useState({ name: '', description: '', price: 0, bgLabel: '', stock: 999 })
+  const [form, setForm]   = useState({ name: '', description: '', price: 0, bgLabel: '', stock: 999, isAvailable: true, isNew: false, isBestSeller: false, isFeatured: false })
   const [categories, setCategories] = useState([])
   const [files, setFiles] = useState([])
+  const [saving, setSaving] = useState(false)
 
   useEffect(() => {
     adminService.getCategories().then(({ data }) => setCategories(data.data || [])).catch(() => {})
-    if (isEdit) adminService.getProducts().then(({ data }) => {
-      const p = (data.data || []).find((x) => x._id === id)
-      if (p) setForm({ ...p, category: p.category?._id || p.category })
-    }).catch(() => {})
+    if (isEdit) {
+      adminService.getProducts().then(({ data }) => {
+        const p = (data.data || []).find((x) => x._id === id)
+        if (p) setForm({ ...p, category: p.category?._id || p.category })
+      }).catch(() => {})
+    }
   }, [id, isEdit])
+
+  const set = (k, v) => setForm((s) => ({ ...s, [k]: v }))
 
   const submit = async (e) => {
     e.preventDefault()
+    setSaving(true)
     const fd = new FormData()
     Object.entries(form).forEach(([k, v]) => fd.append(k, v ?? ''))
     files.forEach((f) => fd.append('images', f))
@@ -28,41 +41,118 @@ const ProductForm = () => {
     nav('/admin/products')
   }
 
+  const inputCls = 'w-full border-b border-nude/80 bg-transparent pb-2.5 font-josefin text-[11px] text-ink outline-none transition-colors placeholder:text-stone/30 focus:border-bark'
+
   return (
     <section>
-      <div className="mb-3 md:hidden">
-        <Link to="/admin/products" className="font-josefin text-[8px] uppercase tracking-[0.15em] text-gold">← Retour</Link>
-      </div>
-      <div className="mb-4 hidden md:block">
-        <p className="font-josefin text-[8px] uppercase tracking-[0.15em] text-[rgba(255,255,255,0.45)]">
-          <Link to="/admin/products" className="text-gold">Produits</Link> / {isEdit ? 'Modifier' : 'Nouveau'}
+      <div className="mb-5">
+        <p className="font-josefin text-[8px] uppercase tracking-[0.15em] text-stone/40">
+          <Link to="/admin/products" className="text-bark hover:text-ink">Produits</Link>
+          {' '}/ {isEdit ? 'Modifier' : 'Nouveau'}
         </p>
       </div>
+
       <form onSubmit={submit} className="admin-two-col">
-        <div className="border border-[0.5px] border-[rgba(201,168,76,0.22)] bg-dark2 p-6">
-          <p className="mb-4 font-josefin text-[9px] uppercase tracking-[0.2em] text-gold">{isEdit ? 'Modifier produit' : 'Nouveau produit'}</p>
-          <input className="auth-input mb-5 w-full border-0 border-b border-[0.5px] border-[rgba(255,255,255,0.15)] bg-transparent py-3" placeholder="Nom" value={form.name || ''} onChange={(e) => setForm((s) => ({ ...s, name: e.target.value }))} />
-          <select className="mb-5 w-full border border-[0.5px] border-[rgba(201,168,76,0.22)] bg-dark1 p-3" value={form.category || ''} onChange={(e) => setForm((s) => ({ ...s, category: e.target.value }))}>
-            <option value="">Catégorie</option>
-            {categories.map((c) => <option key={c._id} value={c._id}>{c.name}</option>)}
-          </select>
-          <textarea className="auth-input mb-5 w-full border-0 border-b border-[0.5px] border-[rgba(255,255,255,0.15)] bg-transparent py-3" placeholder="Description" value={form.description || ''} onChange={(e) => setForm((s) => ({ ...s, description: e.target.value }))} />
-          <input type="number" className="auth-input mb-5 w-full border-0 border-b border-[0.5px] border-[rgba(255,255,255,0.15)] bg-transparent py-3" placeholder="Prix" value={form.price || 0} onChange={(e) => setForm((s) => ({ ...s, price: e.target.value }))} />
-          <input type="file" multiple accept="image/jpeg,image/png,image/webp" className="mb-6 block w-full text-xs" onChange={(e) => setFiles(Array.from(e.target.files || []))} />
-          <div className="admin-toggle-grid mb-6">
-            {['Disponible', 'Nouveau', 'Best-seller', 'Featured'].map((t) => (
-              <div key={t} className="flex min-h-[44px] items-center justify-between border border-[0.5px] border-[rgba(255,255,255,0.1)] px-3">
-                <span className="font-josefin text-[8px] uppercase tracking-[0.12em] text-[rgba(255,255,255,0.45)]">{t}</span>
-                <span className="h-4 w-8 border border-[0.5px] border-[rgba(201,168,76,0.22)] bg-dark4" />
-              </div>
+        {/* Form panel */}
+        <div className="border border-nude/60 bg-cream p-6">
+          <p className="mb-6 font-josefin text-[9px] uppercase tracking-[0.2em] text-stone/50">
+            {isEdit ? 'Modifier le produit' : 'Nouveau produit'}
+          </p>
+
+          <div className="space-y-5">
+            <label className="block">
+              <span className="mb-1.5 block font-josefin text-[7px] uppercase tracking-[0.18em] text-stone/40">Nom</span>
+              <input className={inputCls} placeholder="Nom du produit" value={form.name || ''} onChange={(e) => set('name', e.target.value)} required />
+            </label>
+
+            <label className="block">
+              <span className="mb-1.5 block font-josefin text-[7px] uppercase tracking-[0.18em] text-stone/40">Catégorie</span>
+              <select
+                className="w-full border-b border-nude/80 bg-transparent pb-2.5 font-josefin text-[11px] text-ink outline-none focus:border-bark"
+                value={form.category || ''}
+                onChange={(e) => set('category', e.target.value)}
+              >
+                <option value="">— Sélectionner —</option>
+                {categories.map((c) => <option key={c._id} value={c._id}>{c.name}</option>)}
+              </select>
+            </label>
+
+            <label className="block">
+              <span className="mb-1.5 block font-josefin text-[7px] uppercase tracking-[0.18em] text-stone/40">Description</span>
+              <textarea
+                className={`${inputCls} resize-none`}
+                placeholder="Description"
+                rows={3}
+                value={form.description || ''}
+                onChange={(e) => set('description', e.target.value)}
+              />
+            </label>
+
+            <label className="block">
+              <span className="mb-1.5 block font-josefin text-[7px] uppercase tracking-[0.18em] text-stone/40">Prix (TND)</span>
+              <input type="number" className={inputCls} placeholder="0" value={form.price || ''} onChange={(e) => set('price', e.target.value)} />
+            </label>
+
+            <label className="block">
+              <span className="mb-1.5 block font-josefin text-[7px] uppercase tracking-[0.18em] text-stone/40">Stock</span>
+              <input type="number" className={inputCls} placeholder="999" value={form.stock || ''} onChange={(e) => set('stock', e.target.value)} />
+            </label>
+
+            <label className="block">
+              <span className="mb-2 block font-josefin text-[7px] uppercase tracking-[0.18em] text-stone/40">Images</span>
+              <input
+                type="file"
+                multiple
+                accept="image/jpeg,image/png,image/webp"
+                className="block w-full font-josefin text-[9px] text-stone/50"
+                onChange={(e) => setFiles(Array.from(e.target.files || []))}
+              />
+            </label>
+          </div>
+
+          {/* Toggles */}
+          <div className="admin-toggle-grid mt-6">
+            {TOGGLES.map(({ key, label }) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => set(key, !form[key])}
+                className={`flex min-h-[44px] items-center justify-between border px-3 transition-colors ${
+                  form[key]
+                    ? 'border-bark bg-bark/[0.06] text-bark'
+                    : 'border-nude/60 text-stone/40'
+                }`}
+              >
+                <span className="font-josefin text-[8px] uppercase tracking-[0.12em]">{label}</span>
+                <span className={`h-4 w-8 border transition-colors ${form[key] ? 'border-bark bg-bark' : 'border-nude/60 bg-transparent'}`} />
+              </button>
             ))}
           </div>
-          <button className="h-12 w-full bg-gold font-josefin text-[9px] uppercase tracking-[0.2em] text-black">Enregistrer</button>
+
+          <button
+            type="submit"
+            disabled={saving}
+            className="btn-bark mt-6 h-12 w-full justify-center disabled:opacity-60"
+          >
+            {saving ? 'Enregistrement…' : 'Enregistrer le produit'}
+          </button>
         </div>
-        <div className="admin-preview border border-[0.5px] border-[rgba(201,168,76,0.22)] bg-dark2 p-6">
-          <p className="font-josefin text-[8px] uppercase tracking-[0.2em] text-gold">Aperçu</p>
-          <p className="mt-4 font-cormorant text-3xl">{form.name || 'Nom produit'}</p>
-          <p className="font-cormorant text-2xl text-gold">{Math.round(Number(form.price || 0))} TND</p>
+
+        {/* Preview panel */}
+        <div className="admin-preview border border-nude/60 bg-parchment p-6">
+          <p className="mb-5 font-josefin text-[8px] uppercase tracking-[0.2em] text-stone/40">Aperçu</p>
+          <div className="border border-nude/60 bg-cream p-5">
+            <p className="font-cormorant text-3xl text-ink">{form.name || 'Nom produit'}</p>
+            <p className="mt-1 font-cormorant text-2xl text-bark">{Math.round(Number(form.price || 0))} TND</p>
+            {form.description && <p className="mt-3 font-josefin text-[9px] leading-relaxed text-stone/60">{form.description}</p>}
+          </div>
+          <div className="mt-4 space-y-1">
+            {TOGGLES.filter(({ key }) => form[key]).map(({ label }) => (
+              <span key={label} className="mr-2 inline-block border border-bark/30 bg-bark/[0.06] px-2 py-1 font-josefin text-[7px] uppercase tracking-[0.12em] text-bark">
+                {label}
+              </span>
+            ))}
+          </div>
         </div>
       </form>
     </section>
