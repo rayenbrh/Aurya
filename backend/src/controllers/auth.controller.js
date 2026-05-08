@@ -31,7 +31,8 @@ export async function register(req, res) {
 
 export async function login(req, res) {
   const { email, password } = req.body
-  const user = await User.findOne({ email }).select('+password +refreshToken')
+  if (!email || !password) return res.status(400).json({ success: false, message: 'Email et mot de passe requis' })
+  const user = await User.findOne({ email: email.toLowerCase().trim() }).select('+password +refreshToken')
   if (!user || !(await user.comparePassword(password))) {
     return res.status(401).json({ success: false, message: 'Identifiants invalides' })
   }
