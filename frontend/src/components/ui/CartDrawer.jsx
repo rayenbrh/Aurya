@@ -22,14 +22,18 @@ export default function CartDrawer({ open, onClose }) {
     <AnimatePresence>
       {open && (
         <Dialog open={open} onClose={onClose} className="relative z-[550]">
+          {/* Backdrop */}
           <motion.div
             className="fixed inset-0 z-[549]"
             style={{ background: 'rgba(42,31,26,0.45)', backdropFilter: 'blur(4px)' }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            onClick={onClose}
           />
-          <div className="fixed inset-0 flex justify-end">
+
+          {/* Panel container — must be above backdrop */}
+          <div className="fixed inset-0 z-[550] flex justify-end">
             <DialogPanel
               as={motion.aside}
               initial={{ x: '100%' }}
@@ -64,7 +68,11 @@ export default function CartDrawer({ open, onClose }) {
                       <FiShoppingBag size={28} className="text-bark/30" />
                     </div>
                     <p className="font-cormorant text-xl font-light text-ink">Votre panier est vide</p>
-                    <Link to="/collections" onClick={onClose} className="mt-3 font-josefin text-[9px] uppercase tracking-[0.2em] text-bark hover:text-ink transition-colors">
+                    <Link
+                      to="/collections"
+                      onClick={onClose}
+                      className="mt-3 font-josefin text-[9px] uppercase tracking-[0.2em] text-bark transition-colors hover:text-ink"
+                    >
                       Découvrir nos collections →
                     </Link>
                   </div>
@@ -74,7 +82,7 @@ export default function CartDrawer({ open, onClose }) {
                     return (
                       <div key={product.id} className="flex gap-4 border-b border-nude/50 px-6 py-5">
                         <div
-                          className="h-[72px] w-[72px] shrink-0 rounded-card border border-nude/70 overflow-hidden"
+                          className="h-[72px] w-[72px] shrink-0 overflow-hidden rounded-card border border-nude/70"
                           style={{ backgroundColor: product.bgColor || '#EDE8E0' }}
                         >
                           {product.imageUrl && (
@@ -98,7 +106,7 @@ export default function CartDrawer({ open, onClose }) {
                           </div>
                           <div className="mt-2 flex items-center justify-between">
                             <p className="font-cormorant text-[18px] font-light text-olive">{formatPrice(product.price)}</p>
-                            <div className="inline-flex items-center rounded-card border border-nude/80 overflow-hidden">
+                            <div className="inline-flex items-center overflow-hidden rounded-card border border-nude/80">
                               <button
                                 type="button"
                                 aria-label="Diminuer"
