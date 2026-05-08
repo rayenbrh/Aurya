@@ -6,7 +6,7 @@ const getOrCreate = () =>
 
 export async function getSettings(_req, res) {
   const settings = await getOrCreate()
-  res.set('Cache-Control', 'public, max-age=60')
+  res.set('Cache-Control', 'no-cache')
   return res.json({ success: true, data: settings, message: 'Paramètres chargés' })
 }
 
