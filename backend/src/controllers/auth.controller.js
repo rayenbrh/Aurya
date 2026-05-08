@@ -1,12 +1,14 @@
 import User from '../models/User.js'
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from '../utils/jwt.utils.js'
 
-const isProd = process.env.NODE_ENV === 'production'
-const cookieOptions = {
-  httpOnly: true,
-  sameSite: isProd ? 'none' : 'lax',
-  secure: isProd,
-  path: '/',
+const getCookieOptions = () => {
+  const isProd = process.env.NODE_ENV === 'production'
+  return {
+    httpOnly: true,
+    sameSite: isProd ? 'none' : 'lax',
+    secure: isProd,
+    path: '/',
+  }
 }
 
 const sanitizeUser = (u) => ({
@@ -25,23 +27,28 @@ export async function register(req, res) {
   const refreshToken = signRefreshToken({ id: user._id, role: user.role })
   user.refreshToken = refreshToken
   await user.save()
-  res.cookie('refreshToken', refreshToken, cookieOptions)
+  res.cookie('refreshToken', refreshToken, getCookieOptions())
   return res.status(201).json({ success: true, data: { user: sanitizeUser(user), accessToken }, message: 'Compte créé' })
 }
 
 export async function login(req, res) {
   const { email, password } = req.body
   if (!email || !password) return res.status(400).json({ success: false, message: 'Email et mot de passe requis' })
-  const user = await User.findOne({ email: email.toLowerCase().trim() }).select('+password +refreshToken')
-  if (!user || !(await user.comparePassword(password))) {
-    return res.status(401).json({ success: false, message: 'Identifiants invalides' })
+  const normalizedEmail = email.toLowerCase().trim()
+  const user = await User.findOne({ email: normalizedEmail }).select('+password +refreshToken')
+  if (!user) {
+    return res.status(401).json({ success: false, message: 'Aucun compte trouvé avec cet email' })
+  }
+  const passwordMatch = await user.comparePassword(password)
+  if (!passwordMatch) {
+    return res.status(401).json({ success: false, message: 'Mot de passe incorrect' })
   }
   const accessToken = signAccessToken({ id: user._id, email: user.email, role: user.role })
   const refreshToken = signRefreshToken({ id: user._id, role: user.role })
   user.refreshToken = refreshToken
   user.lastLogin = new Date()
   await user.save()
-  res.cookie('refreshToken', refreshToken, cookieOptions)
+  res.cookie('refreshToken', refreshToken, getCookieOptions())
   return res.json({ success: true, data: { user: sanitizeUser(user), accessToken }, message: 'Connexion réussie' })
 }
 
@@ -54,7 +61,7 @@ export async function logout(req, res) {
       await user.save()
     }
   }
-  res.clearCookie('refreshToken', { ...cookieOptions, maxAge: 0 })
+  res.clearCookie('refreshToken', { ...getCookieOptions(), maxAge: 0 })
   return res.json({ success: true, data: null, message: 'Déconnecté' })
 }
 
