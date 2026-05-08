@@ -1,10 +1,11 @@
 import User from '../models/User.js'
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from '../utils/jwt.utils.js'
 
+const isProd = process.env.NODE_ENV === 'production'
 const cookieOptions = {
   httpOnly: true,
-  sameSite: 'lax',
-  secure: false,
+  sameSite: isProd ? 'none' : 'lax',
+  secure: isProd,
   path: '/',
 }
 
