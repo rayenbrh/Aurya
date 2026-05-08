@@ -1,17 +1,18 @@
 import { Link, useLocation } from 'react-router-dom'
+import { FiMenu, FiExternalLink } from 'react-icons/fi'
 import { useAdminUI } from '../../context/AdminUIContext'
 
 const mapTitle = (path) => {
-  const pageTitles = {
-    '/admin': 'Tableau de bord',
-    '/admin/orders': 'Commandes',
-    '/admin/products': 'Produits',
+  const titles = {
+    '/admin':            'Tableau de bord',
+    '/admin/orders':     'Commandes',
+    '/admin/products':   'Produits',
     '/admin/categories': 'Catégories',
-    '/admin/settings': 'Paramètres',
-    '/admin/analytics': 'Analytiques',
-    '/admin/customers': 'Clients',
+    '/admin/settings':   'Paramètres',
+    '/admin/analytics':  'Analytiques',
+    '/admin/customers':  'Clients',
   }
-  if (pageTitles[path]) return pageTitles[path]
+  if (titles[path]) return titles[path]
   if (path.includes('/products/') && path.includes('/edit')) return 'Modifier le produit'
   if (path.includes('/products/new')) return 'Nouveau produit'
   if (path.includes('/orders/')) return 'Détail commande'
@@ -24,89 +25,43 @@ const AdminTopbar = () => {
 
   return (
     <header
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        height: '60px',
-        background: 'rgba(13,13,13,0.94)',
-        backdropFilter: 'blur(12px)',
-        borderBottom: '0.5px solid rgba(201,168,76,0.15)',
-        zIndex: 70,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-      }}
+      className="fixed left-0 right-0 top-0 z-[70] flex h-[60px] items-center justify-between border-b border-nude/50 px-5 md:px-6"
+      style={{ background: 'rgba(247,244,239,0.97)', backdropFilter: 'blur(16px)', marginLeft: '0' }}
     >
-      <div className="admin-topbar-left" style={{ display: 'flex', alignItems: 'center', gap: '16px', flex: 1 }}>
+      <div className="admin-topbar-left flex flex-1 items-center gap-4">
+        {/* Mobile hamburger */}
         <button
           onClick={toggleSidebar}
-          aria-label="Ouvrir le menu"
-          className="admin-hamburger"
-          style={{
-            flexDirection: 'column',
-            justifyContent: 'center',
-            gap: '5px',
-            width: '40px',
-            height: '40px',
-            background: 'transparent',
-            border: 'none',
-            cursor: 'pointer',
-            padding: '8px',
-          }}
+          aria-label="Menu"
+          className="admin-hamburger flex h-9 w-9 flex-col items-center justify-center gap-[5px]"
         >
-          <span
-            style={{
-              display: 'block',
-              width: '20px',
-              height: '1.5px',
-              background: '#C9A84C',
-              transform: sidebarOpen ? 'rotate(45deg) translateY(6.5px)' : 'none',
-              transformOrigin: 'center',
-              transition: 'transform 0.25s cubic-bezier(0.76,0,0.24,1)',
-            }}
-          />
-          <span
-            style={{
-              display: 'block',
-              width: '20px',
-              height: '1.5px',
-              background: '#C9A84C',
-              opacity: sidebarOpen ? 0 : 1,
-              transform: sidebarOpen ? 'scaleX(0)' : 'scaleX(1)',
-              transition: 'opacity 0.25s, transform 0.25s',
-            }}
-          />
-          <span
-            style={{
-              display: 'block',
-              width: '20px',
-              height: '1.5px',
-              background: '#C9A84C',
-              transform: sidebarOpen ? 'rotate(-45deg) translateY(-6.5px)' : 'none',
-              transformOrigin: 'center',
-              transition: 'transform 0.25s cubic-bezier(0.76,0,0.24,1)',
-            }}
-          />
+          {[0, 1, 2].map((i) => (
+            <span
+              key={i}
+              className="block h-[1.5px] w-[18px] bg-ink transition-all duration-300"
+              style={
+                i === 0 ? { transform: sidebarOpen ? 'rotate(45deg) translateY(6.5px)' : 'none' }
+                : i === 1 ? { opacity: sidebarOpen ? 0 : 1, transform: sidebarOpen ? 'scaleX(0)' : 'scaleX(1)' }
+                : { transform: sidebarOpen ? 'rotate(-45deg) translateY(-6.5px)' : 'none' }
+              }
+            />
+          ))}
         </button>
-        <span
-          style={{
-            fontFamily: "'Josefin Sans', sans-serif",
-            fontSize: '11px',
-            letterSpacing: '0.2em',
-            textTransform: 'uppercase',
-            color: 'rgba(255,255,255,0.92)',
-          }}
-        >
+
+        <span className="font-josefin text-[10px] uppercase tracking-[0.22em] text-ink">
           {mapTitle(location.pathname)}
         </span>
       </div>
-      <div style={{ paddingRight: '24px' }}>
-        <Link to="/" target="_blank" rel="noopener noreferrer" className="admin-store-link font-josefin text-[8px] uppercase tracking-[0.2em] text-gold">
-          <span>VOIR LA BOUTIQUE ↗</span>
-        </Link>
-      </div>
+
+      <Link
+        to="/"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="admin-store-link flex items-center gap-1.5 font-josefin text-[8px] uppercase tracking-[0.2em] text-bark transition-colors hover:text-ink"
+      >
+        <span>Voir la boutique</span>
+        <FiExternalLink size={11} />
+      </Link>
     </header>
   )
 }

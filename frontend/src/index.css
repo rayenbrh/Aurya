@@ -144,7 +144,7 @@ a { text-decoration: none; color: inherit; }
   margin-top: var(--admin-topbar-height);
   min-height: calc(100vh - var(--admin-topbar-height));
   padding: 32px;
-  background: #0D0D0D;
+  background: #F7F4EF;
   box-sizing: border-box;
 }
 @media (max-width: 767px) {
