@@ -76,7 +76,19 @@ export const createCategory = async (req, res) => {
   }
 }
 export const updateCategory = async (req, res) => res.json({ success: true, data: await Category.findByIdAndUpdate(req.params.id, req.body, { new: true }), message: 'Catégorie mise à jour' })
-export const deleteCategory = async (req, res) => res.json({ success: true, data: await Category.findByIdAndDelete(req.params.id), message: 'Catégorie supprimée' })
+export const deleteCategory = async (req, res) => {
+  const category = await Category.findById(req.params.id)
+  if (!category) return res.status(404).json({ success: false, message: 'Catégorie introuvable' })
+  const productCount = await Product.countDocuments({ category: req.params.id })
+  if (productCount > 0) {
+    return res.status(400).json({
+      success: false,
+      message: `Impossible de supprimer : ${productCount} produit(s) lié(s) à cette catégorie`,
+    })
+  }
+  await Category.findByIdAndDelete(req.params.id)
+  return res.json({ success: true, data: category, message: 'Catégorie supprimée' })
+}
 export const reorderCategories = async (req, res) => {
   await Promise.all(req.body.map((i) => Category.findByIdAndUpdate(i.id, { order: i.order })))
   res.json({ success: true, data: await Category.find().sort({ order: 1 }), message: 'Ordre sauvegardé' })

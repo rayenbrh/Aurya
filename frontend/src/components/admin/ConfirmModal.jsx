@@ -8,8 +8,8 @@ const ConfirmModal = ({ isOpen, onConfirm, onCancel, title, message, confirmLabe
           <h3 className="font-cormorant text-3xl">{title}</h3>
           <p className="mt-3 text-sm text-[rgba(255,255,255,0.45)]">{message}</p>
           <div className="mt-7 flex gap-2">
-            <button onClick={onCancel} className="h-11 flex-1 border border-[0.5px] border-[rgba(255,255,255,0.12)] font-josefin text-[8px] uppercase tracking-[0.2em]">Annuler</button>
-            <button onClick={onConfirm} className={`h-11 flex-1 font-josefin text-[8px] uppercase tracking-[0.2em] ${variant === 'gold' ? 'bg-gold text-black' : 'border border-[0.5px] border-[#C0392B] text-[#C0392B]'}`}>{confirmLabel}</button>
+            <button type="button" onClick={onCancel} className="h-11 flex-1 border border-[0.5px] border-[rgba(255,255,255,0.12)] font-josefin text-[8px] uppercase tracking-[0.2em]">Annuler</button>
+            <button type="button" onClick={onConfirm} className={`h-11 flex-1 font-josefin text-[8px] uppercase tracking-[0.2em] ${variant === 'gold' ? 'bg-gold text-black' : 'border border-[0.5px] border-[#C0392B] text-[#C0392B]'}`}>{confirmLabel}</button>
           </div>
         </motion.div>
       </div>
