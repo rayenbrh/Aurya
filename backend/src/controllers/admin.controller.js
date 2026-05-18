@@ -4,6 +4,7 @@ import Product from '../models/Product.js'
 import SiteSettings from '../models/SiteSettings.js'
 import User from '../models/User.js'
 import { deleteLocalUpload, toPublicUploadUrl } from '../utils/upload.utils.js'
+import { parseProductBody } from '../utils/productBody.utils.js'
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
@@ -16,8 +17,13 @@ export const getAdminProducts = async (_req, res) => {
 }
 
 export const createAdminProduct = async (req, res) => {
-  const body = { ...req.body }
-  body.tags = body.tags ? JSON.parse(body.tags) : []
+  const body = parseProductBody(req.body)
+  if (!body.category) {
+    return res.status(400).json({ success: false, message: 'La catégorie est obligatoire' })
+  }
+  if (!body.description?.trim()) {
+    return res.status(400).json({ success: false, message: 'La description est obligatoire' })
+  }
   const files = req.files || []
   body.images = files.map((f) => toPublicUploadUrl(f.path))
   const product = await Product.create(body)
@@ -27,8 +33,7 @@ export const createAdminProduct = async (req, res) => {
 export const updateAdminProduct = async (req, res) => {
   const product = await Product.findById(req.params.id)
   if (!product) return res.status(404).json({ success: false, message: 'Produit introuvable' })
-  const body = { ...req.body }
-  if (body.tags) body.tags = JSON.parse(body.tags)
+  const body = parseProductBody(req.body)
   const existingImages = body.existingImages ? JSON.parse(body.existingImages) : product.images || []
   const newImages = (req.files || []).map((f) => toPublicUploadUrl(f.path))
   body.images = [...existingImages, ...newImages].slice(0, 4)

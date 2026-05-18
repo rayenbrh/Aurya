@@ -17,7 +17,7 @@ export default defineConfig({
   },
   preview: {
     host: '0.0.0.0',
-    allowedHosts: ['https://auryadeco.tn/'],
+    allowedHosts: ['auryadeco.tn', 'www.auryadeco.tn', 'localhost'],
   },
   plugins: [
     react(),

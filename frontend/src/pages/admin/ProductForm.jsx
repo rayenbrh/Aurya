@@ -9,6 +9,19 @@ const TOGGLES = [
   { key: 'isFeatured',  label: 'Featured' },
 ]
 
+const FORM_FIELDS = ['name', 'description', 'price', 'bgLabel', 'stock', 'category', 'isAvailable', 'isNew', 'isBestSeller', 'isFeatured']
+
+const buildFormData = (form) => {
+  const fd = new FormData()
+  FORM_FIELDS.forEach((k) => {
+    const v = form[k]
+    if (v === undefined || v === null) return
+    if (typeof v === 'boolean') fd.append(k, v ? 'true' : 'false')
+    else fd.append(k, String(v))
+  })
+  return fd
+}
+
 const ProductForm = () => {
   const { id } = useParams()
   const isEdit = Boolean(id)
@@ -17,6 +30,7 @@ const ProductForm = () => {
   const [categories, setCategories] = useState([])
   const [files, setFiles] = useState([])
   const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
 
   useEffect(() => {
     adminService.getCategories().then(({ data }) => setCategories(data.data || [])).catch(() => {})
@@ -32,13 +46,35 @@ const ProductForm = () => {
 
   const submit = async (e) => {
     e.preventDefault()
+    setError('')
+    if (!form.category) {
+      setError('Veuillez sélectionner une catégorie.')
+      return
+    }
+    if (!String(form.description || '').trim()) {
+      setError('La description est obligatoire.')
+      return
+    }
+    if (!Number(form.price) && Number(form.price) !== 0) {
+      setError('Veuillez indiquer un prix valide.')
+      return
+    }
     setSaving(true)
-    const fd = new FormData()
-    Object.entries(form).forEach(([k, v]) => fd.append(k, v ?? ''))
-    files.forEach((f) => fd.append('images', f))
-    if (isEdit) await adminService.updateProduct(id, fd)
-    else await adminService.createProduct(fd)
-    nav('/admin/products')
+    try {
+      const fd = buildFormData(form)
+      files.forEach((f) => fd.append('images', f))
+      if (isEdit) await adminService.updateProduct(id, fd)
+      else await adminService.createProduct(fd)
+      nav('/admin/products')
+    } catch (err) {
+      const msg = err.response?.data?.message
+        || err.response?.data?.errors?.join?.(', ')
+        || err.message
+        || 'Impossible d\'enregistrer le produit.'
+      setError(msg)
+    } finally {
+      setSaving(false)
+    }
   }
 
   const inputCls = 'w-full border-b border-nude/80 bg-transparent pb-2.5 font-josefin text-[11px] text-ink outline-none transition-colors placeholder:text-stone/30 focus:border-bark'
@@ -71,6 +107,7 @@ const ProductForm = () => {
                 className="w-full border-b border-nude/80 bg-transparent pb-2.5 font-josefin text-[11px] text-ink outline-none focus:border-bark"
                 value={form.category || ''}
                 onChange={(e) => set('category', e.target.value)}
+                required
               >
                 <option value="">— Sélectionner —</option>
                 {categories.map((c) => <option key={c._id} value={c._id}>{c.name}</option>)}
@@ -85,6 +122,7 @@ const ProductForm = () => {
                 rows={3}
                 value={form.description || ''}
                 onChange={(e) => set('description', e.target.value)}
+                required
               />
             </label>
 
@@ -128,6 +166,12 @@ const ProductForm = () => {
               </button>
             ))}
           </div>
+
+          {error && (
+            <p className="mt-4 border border-red-200 bg-red-50 px-3 py-2 font-josefin text-[9px] text-red-700">
+              {error}
+            </p>
+          )}
 
           <button
             type="submit"
