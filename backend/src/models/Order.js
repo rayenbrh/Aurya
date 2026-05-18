@@ -49,7 +49,7 @@ const orderSchema = new Schema({
 orderSchema.index({ createdAt: -1 })
 orderSchema.index({ 'customer.phone': 1 })
 
-orderSchema.pre('save', async function hydrateOrder(next) {
+orderSchema.pre('save', async function hydrateOrder() {
   if (!this.orderNumber) {
     const year = new Date().getFullYear()
     const count = await this.constructor.countDocuments({
@@ -61,7 +61,6 @@ orderSchema.pre('save', async function hydrateOrder(next) {
   this.subtotal = this.items.reduce((acc, i) => acc + i.subtotal, 0)
   this.total = this.subtotal + this.deliveryFee - this.discount
   if (!this.statusHistory?.length) this.statusHistory = [{ status: this.status, note: 'Commande créée' }]
-  next()
 })
 
 export default mongoose.model('Order', orderSchema)

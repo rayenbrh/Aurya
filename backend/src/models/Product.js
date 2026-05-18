@@ -27,14 +27,12 @@ const productSchema = new Schema({
   viewCount: { type: Number, default: 0 },
 }, { timestamps: true })
 
-productSchema.pre('save', function setSlug(next) {
+productSchema.pre('save', function setSlug() {
   if (this.isModified('name')) this.slug = slugify(this.name)
-  next()
 })
 
-productSchema.pre('findOneAndUpdate', function setUpdatedAt(next) {
+productSchema.pre('findOneAndUpdate', function setUpdatedAt() {
   this.set({ updatedAt: new Date() })
-  next()
 })
 
 export default mongoose.model('Product', productSchema)

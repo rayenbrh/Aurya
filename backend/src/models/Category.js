@@ -10,9 +10,8 @@ const categorySchema = new mongoose.Schema({
   count: { type: Number, default: 0 },
 })
 
-categorySchema.pre('save', function setSlug(next) {
+categorySchema.pre('save', function setSlug() {
   if (this.isModified('name')) this.slug = slugify(this.name)
-  next()
 })
 
 export default mongoose.model('Category', categorySchema)
