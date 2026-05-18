@@ -17,7 +17,7 @@ export default defineConfig({
   },
   preview: {
     host: '0.0.0.0',
-    allowedHosts: ['gouidex-front.2bj94x.easypanel.host'],
+    allowedHosts: ['https://auryadeco.tn/'],
   },
   plugins: [
     react(),
