@@ -222,7 +222,7 @@ function MarqueeTab({ settings, setSettings, showToast }) {
     try {
       await adminService.updateMarquee({ text: m.text, speed: m.speed })
       showToast('Marquee enregistrée')
-    } catch { showToast('Erreur sauvegarde', true) }
+    } catch (err) { showToast(err?.response?.data?.message || 'Erreur sauvegarde', true) }
     finally { setSaving(false) }
   }
   return (
@@ -242,7 +242,7 @@ function ContactTab({ settings, setSettings, showToast }) {
     try {
       await adminService.updateContact(c)
       showToast('Contact enregistré')
-    } catch { showToast('Erreur sauvegarde', true) }
+    } catch (err) { showToast(err?.response?.data?.message || 'Erreur sauvegarde', true) }
     finally { setSaving(false) }
   }
   return (
@@ -264,7 +264,7 @@ function SeoTab({ settings, setSettings, showToast }) {
     try {
       await adminService.updateSEO(s)
       showToast('SEO enregistré')
-    } catch { showToast('Erreur sauvegarde', true) }
+    } catch (err) { showToast(err?.response?.data?.message || 'Erreur sauvegarde', true) }
     finally { setSaving(false) }
   }
   return (

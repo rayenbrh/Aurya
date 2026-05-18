@@ -57,7 +57,24 @@ export const toggleProduct = async (req, res) => {
 }
 
 export const getAdminCategories = async (_req, res) => res.json({ success: true, data: await Category.find().sort({ order: 1 }), message: 'Catégories' })
-export const createCategory = async (req, res) => res.status(201).json({ success: true, data: await Category.create(req.body), message: 'Catégorie créée' })
+export const createCategory = async (req, res) => {
+  const name = String(req.body.name || '').trim()
+  if (!name) {
+    return res.status(400).json({ success: false, message: 'Le nom de la catégorie est obligatoire' })
+  }
+  const icon = String(req.body.icon || '🏷').trim() || '🏷'
+  const order = Number(req.body.order)
+  const payload = { name, icon, order: Number.isFinite(order) ? order : 0 }
+  try {
+    const data = await Category.create(payload)
+    return res.status(201).json({ success: true, data, message: 'Catégorie créée' })
+  } catch (err) {
+    if (err.code === 11000) {
+      return res.status(409).json({ success: false, message: 'Une catégorie avec ce nom existe déjà' })
+    }
+    throw err
+  }
+}
 export const updateCategory = async (req, res) => res.json({ success: true, data: await Category.findByIdAndUpdate(req.params.id, req.body, { new: true }), message: 'Catégorie mise à jour' })
 export const deleteCategory = async (req, res) => res.json({ success: true, data: await Category.findByIdAndDelete(req.params.id), message: 'Catégorie supprimée' })
 export const reorderCategories = async (req, res) => {

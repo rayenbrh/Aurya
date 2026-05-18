@@ -1,5 +1,5 @@
 export function slugify(text = '') {
-  return text
+  const slug = text
     .toString()
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
@@ -8,4 +8,5 @@ export function slugify(text = '') {
     .replace(/[^a-z0-9\s-]/g, '')
     .replace(/\s+/g, '-')
     .replace(/-+/g, '-')
+  return slug || `item-${Date.now()}`
 }

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { adminService } from '../../services/admin.service'
+import { getAdminErrorMessage } from '../../utils/adminApi.js'
 
 const TOGGLES = [
   { key: 'isAvailable', label: 'Disponible' },
@@ -67,11 +68,7 @@ const ProductForm = () => {
       else await adminService.createProduct(fd)
       nav('/admin/products')
     } catch (err) {
-      const msg = err.response?.data?.message
-        || err.response?.data?.errors?.join?.(', ')
-        || err.message
-        || 'Impossible d\'enregistrer le produit.'
-      setError(msg)
+      setError(getAdminErrorMessage(err, 'Impossible d\'enregistrer le produit.'))
     } finally {
       setSaving(false)
     }

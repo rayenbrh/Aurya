@@ -1,17 +1,24 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { adminService } from '../../services/admin.service'
+import { getAdminErrorMessage } from '../../utils/adminApi.js'
 
 const AdminProducts = () => {
   const [products, setProducts] = useState([])
+  const [loadError, setLoadError] = useState('')
   const navigate = useNavigate()
 
   useEffect(() => {
-    adminService.getProducts().then(({ data }) => setProducts(data.data || [])).catch(() => {})
+    adminService.getProducts()
+      .then(({ data }) => setProducts(data.data || []))
+      .catch((err) => setLoadError(getAdminErrorMessage(err, 'Impossible de charger les produits.')))
   }, [])
 
   return (
     <section>
+      {loadError && (
+        <p className="mb-4 border border-red-200 bg-red-50 px-3 py-2 font-josefin text-[9px] text-red-700">{loadError}</p>
+      )}
       <div className="mb-5 flex items-center justify-between">
         <p className="font-josefin text-[11px] uppercase tracking-[0.2em] text-ink">Produits</p>
         <Link
@@ -57,7 +64,7 @@ const AdminProducts = () => {
         )}
       </div>
 
-      <button className="admin-fab" onClick={() => navigate('/admin/products/new')}>+</button>
+      <button type="button" className="admin-fab" onClick={() => navigate('/admin/products/new')}>+</button>
     </section>
   )
 }
