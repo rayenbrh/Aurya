@@ -12,7 +12,7 @@ import {
   getUsers,
   patchUserRole,
   reorderCategories,
-  softDeleteProduct,
+  deleteProduct,
   toggleProduct,
   updateAdminProduct,
   updateCategory,
@@ -37,7 +37,7 @@ router.use(adminOnly)
 router.get('/products', getAdminProducts)
 router.post('/products', withUploadFolder('products'), upload.array('images', 4), createAdminProduct)
 router.patch('/products/:id', withUploadFolder('products'), upload.array('images', 4), updateAdminProduct)
-router.delete('/products/:id', softDeleteProduct)
+router.delete('/products/:id', deleteProduct)
 router.patch('/products/:id/toggle', toggleProduct)
 
 router.get('/categories', getAdminCategories)

@@ -45,9 +45,14 @@ export const updateAdminProduct = async (req, res) => {
   res.json({ success: true, data: serializeProduct(updated), message: 'Produit mis à jour' })
 }
 
-export const softDeleteProduct = async (req, res) => {
-  const p = await Product.findByIdAndUpdate(req.params.id, { isAvailable: false }, { new: true })
-  res.json({ success: true, data: p, message: 'Produit masqué' })
+export const deleteProduct = async (req, res) => {
+  const product = await Product.findById(req.params.id)
+  if (!product) {
+    return res.status(404).json({ success: false, message: 'Produit introuvable' })
+  }
+  await Promise.all((product.images || []).map((img) => deleteLocalUpload(img)))
+  await Product.findByIdAndDelete(req.params.id)
+  return res.json({ success: true, data: { id: req.params.id }, message: 'Produit supprimé définitivement' })
 }
 
 export const toggleProduct = async (req, res) => {

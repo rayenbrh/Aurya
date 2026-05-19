@@ -62,7 +62,15 @@ export function toResponseUploadUrl(storedPath) {
 
 export async function deleteLocalUpload(publicPath) {
   if (!publicPath) return
-  const cleaned = publicPath.replace(/^\/+/, '')
+  let cleaned = publicPath
+  try {
+    if (/^https?:\/\//i.test(publicPath)) {
+      cleaned = new URL(publicPath).pathname
+    }
+  } catch {
+    // keep path as-is
+  }
+  cleaned = cleaned.replace(/^\/+/, '')
   const abs = path.join(__dirname, '../../', cleaned)
   if (fs.existsSync(abs)) fs.unlinkSync(abs)
 }

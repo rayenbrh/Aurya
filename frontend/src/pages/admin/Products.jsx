@@ -104,7 +104,7 @@ const AdminProducts = () => {
       <ConfirmModal
         isOpen={Boolean(confirmDelete)}
         title="Supprimer le produit"
-        message={confirmDelete ? `Retirer « ${confirmDelete.name} » du catalogue ? Le produit sera masqué.` : ''}
+        message={confirmDelete ? `Supprimer définitivement « ${confirmDelete.name} » ? Cette action est irréversible.` : ''}
         confirmLabel="Supprimer"
         onConfirm={remove}
         onCancel={() => setConfirmDelete(null)}
