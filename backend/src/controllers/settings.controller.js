@@ -1,5 +1,6 @@
 import SiteSettings from '../models/SiteSettings.js'
 import { deleteLocalUpload, toPublicUploadUrl } from '../utils/upload.utils.js'
+import { serializeSettings, toAbsoluteMediaUrl } from '../utils/media.utils.js'
 
 const getOrCreate = () =>
   SiteSettings.findOneAndUpdate({ key: 'main' }, { $setOnInsert: { key: 'main' } }, { upsert: true, new: true })
@@ -7,7 +8,7 @@ const getOrCreate = () =>
 export async function getSettings(_req, res) {
   const settings = await getOrCreate()
   res.set('Cache-Control', 'no-cache')
-  return res.json({ success: true, data: settings, message: 'Paramètres chargés' })
+  return res.json({ success: true, data: serializeSettings(settings), message: 'Paramètres chargés' })
 }
 
 export async function patchHeroText(req, res) {
@@ -27,7 +28,7 @@ export async function patchHeroImage(req, res) {
   settings.hero.imageUrl = localUrl
   settings.hero.imagePublicId = localUrl
   await settings.save()
-  return res.json({ success: true, data: { imageUrl: localUrl }, message: 'Image héro mise à jour' })
+  return res.json({ success: true, data: { imageUrl: toAbsoluteMediaUrl(localUrl) }, message: 'Image héro mise à jour' })
 }
 
 export async function patchMarquee(req, res) {

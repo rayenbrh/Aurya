@@ -17,6 +17,9 @@ services:
     environment:
       NODE_ENV: production
       MONGODB_URI: mongodb://mongo:27017/auryadeco
+    volumes:
+      - uploads_data:/app/backend/uploads
 
 volumes:
   mongo_data:
+  uploads_data:

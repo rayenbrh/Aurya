@@ -14,11 +14,11 @@ function getApiOrigin() {
   }
 }
 
-export function resolveImageUrl(path) {
-  if (!path) return ''
-  if (/^https?:\/\//i.test(path)) return path
+export function resolveImageUrl(imagePath) {
+  if (!imagePath) return ''
+  if (/^https?:\/\//i.test(imagePath)) return imagePath
   const origin = getApiOrigin()
-  const normalized = path.startsWith('/') ? path : `/${path}`
+  const normalized = imagePath.startsWith('/') ? imagePath : `/${imagePath}`
   return origin ? `${origin}${normalized}` : normalized
 }
 

@@ -12,5 +12,7 @@ RUN npm ci --omit=dev
 COPY backend/src ./src
 COPY backend/.env.example ./.env.example
 COPY --from=frontend-build /app/frontend/dist ../frontend/dist
+RUN mkdir -p uploads/products uploads/hero uploads/misc
+VOLUME ["/app/backend/uploads"]
 EXPOSE 5000
 CMD ["node","src/server.js"]

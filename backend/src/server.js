@@ -21,12 +21,22 @@ const app = express()
 
 app.set('trust proxy', 1)
 
-app.use(helmet())
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+}))
 app.use(cors(corsOptions))
 app.use(express.json({ limit: '10mb' }))
 app.use(cookieParser())
 app.use(morgan('dev'))
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')))
+
+const uploadsDir = path.join(__dirname, '../uploads')
+app.use('/uploads', (_req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*')
+  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin')
+  next()
+}, express.static(uploadsDir, {
+  maxAge: env.NODE_ENV === 'production' ? '7d' : 0,
+}))
 
 app.use('/api', generalLimiter)
 app.use('/api/orders', strictLimiter)
@@ -39,6 +49,18 @@ app.use('/api/settings', settingsRoutes)
 
 app.get('/api/health', (_req, res) => {
   res.json({ success: true, data: { status: 'ok', timestamp: new Date().toISOString(), env: env.NODE_ENV }, message: 'API OK' })
+})
+
+app.get('/api/config', (_req, res) => {
+  const origin = (env.API_PUBLIC_URL || '').replace(/\/+$/, '')
+  res.json({
+    success: true,
+    data: {
+      apiBase: origin ? `${origin}/api` : '/api',
+      uploadsBase: origin ? `${origin}/uploads` : '/uploads',
+    },
+    message: 'Config publique',
+  })
 })
 
 if (env.NODE_ENV === 'production') {

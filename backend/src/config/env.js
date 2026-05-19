@@ -13,6 +13,8 @@ export const env = {
   JWT_REFRESH_EXPIRES_IN: process.env.JWT_REFRESH_EXPIRES_IN || '30d',
   FRONTEND_URL: process.env.FRONTEND_URL || 'http://localhost:5173',
   CORS_ORIGINS: process.env.CORS_ORIGINS || process.env.FRONTEND_URL || 'http://localhost:5173',
+  /** Public backend URL (no /api) — used for /uploads image links when frontend is on another domain */
+  API_PUBLIC_URL: process.env.API_PUBLIC_URL || process.env.BACKEND_URL || '',
   CLOUDINARY_CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME || '',
   CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY || '',
   CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET || '',

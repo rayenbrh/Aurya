@@ -4,6 +4,7 @@ import Product from '../models/Product.js'
 import SiteSettings from '../models/SiteSettings.js'
 import User from '../models/User.js'
 import { deleteLocalUpload, toPublicUploadUrl } from '../utils/upload.utils.js'
+import { serializeProduct, serializeProducts } from '../utils/media.utils.js'
 import { parseProductBody } from '../utils/productBody.utils.js'
 import fs from 'fs'
 import path from 'path'
@@ -13,7 +14,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 export const getAdminProducts = async (_req, res) => {
   const products = await Product.find().populate('category').sort({ createdAt: -1 })
-  res.json({ success: true, data: products, message: 'Produits admin' })
+  res.json({ success: true, data: serializeProducts(products), message: 'Produits admin' })
 }
 
 export const createAdminProduct = async (req, res) => {
@@ -27,7 +28,7 @@ export const createAdminProduct = async (req, res) => {
   const files = req.files || []
   body.images = files.map((f) => toPublicUploadUrl(f.path))
   const product = await Product.create(body)
-  res.status(201).json({ success: true, data: product, message: 'Produit créé' })
+  res.status(201).json({ success: true, data: serializeProduct(product), message: 'Produit créé' })
 }
 
 export const updateAdminProduct = async (req, res) => {
@@ -41,7 +42,7 @@ export const updateAdminProduct = async (req, res) => {
   await Promise.all(removed.map((img) => deleteLocalUpload(img)))
   delete body.existingImages
   const updated = await Product.findByIdAndUpdate(req.params.id, body, { new: true })
-  res.json({ success: true, data: updated, message: 'Produit mis à jour' })
+  res.json({ success: true, data: serializeProduct(updated), message: 'Produit mis à jour' })
 }
 
 export const softDeleteProduct = async (req, res) => {

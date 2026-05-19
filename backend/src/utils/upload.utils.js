@@ -2,7 +2,6 @@ import fs from 'fs'
 import path from 'path'
 import multer from 'multer'
 import { fileURLToPath } from 'url'
-
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const uploadsRoot = path.join(__dirname, '../../uploads')
 
@@ -45,9 +44,20 @@ export function withUploadFolder(folder) {
 }
 
 export function toPublicUploadUrl(filePath) {
-  const normalized = filePath.replaceAll('\\', '/')
-  const idx = normalized.lastIndexOf('/uploads/')
-  return idx >= 0 ? normalized.slice(idx) : `/uploads/${path.basename(filePath)}`
+  const relative = path.relative(uploadsRoot, filePath).replace(/\\/g, '/')
+  if (!relative || relative.startsWith('..')) {
+    return `/uploads/${path.basename(filePath)}`
+  }
+  return `/uploads/${relative}`.replace(/\/+/g, '/')
+}
+
+/** Store relative path in DB; expose absolute URL in API responses via media.utils */
+export function toStoredUploadUrl(filePath) {
+  return toPublicUploadUrl(filePath)
+}
+
+export function toResponseUploadUrl(storedPath) {
+  return toAbsoluteMediaUrl(storedPath)
 }
 
 export async function deleteLocalUpload(publicPath) {
