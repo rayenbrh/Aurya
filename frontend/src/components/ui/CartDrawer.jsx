@@ -4,7 +4,6 @@ import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { FiX, FiMinus, FiPlus, FiTrash2, FiShoppingBag } from 'react-icons/fi'
 import toast from 'react-hot-toast'
-import { categories } from '../../data/categories'
 import { formatPrice } from '../../data/products'
 import { useCart } from '../../context/CartContext'
 
@@ -78,7 +77,7 @@ export default function CartDrawer({ open, onClose }) {
                   </div>
                 ) : (
                   items.map(({ product, quantity }) => {
-                    const catLabel = categories.find((c) => c.slug === product.category)?.name || product.category
+                    const catLabel = product.categoryName || product.category || ''
                     return (
                       <div key={product.id} className="flex gap-4 border-b border-nude/50 px-6 py-5">
                         <div

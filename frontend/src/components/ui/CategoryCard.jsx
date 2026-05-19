@@ -15,7 +15,7 @@ export default function CategoryCard({ category, panelColor, patternOverlay }) {
         <div
           className="relative h-[200px] overflow-hidden"
           style={{
-            backgroundColor: panelColor || '#D4C4B5',
+            backgroundColor: panelColor || category.panelColor || '#D4C4B5',
             backgroundImage: patternOverlay
               ? 'repeating-linear-gradient(45deg, transparent, transparent 12px, rgba(123,79,58,0.06) 12px, rgba(123,79,58,0.06) 13px)'
               : undefined,

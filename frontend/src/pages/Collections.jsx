@@ -1,18 +1,18 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
-import { categories } from '../data/categories'
-import { products } from '../data/products'
 import ProductCard from '../components/ui/ProductCard'
 import ProductModal from '../components/ui/ProductModal'
 import SectionReveal from '../components/ui/SectionReveal'
 import { useCart } from '../context/CartContext'
+import { productsService } from '../services/products.service'
+import { normalizeCategory, normalizeProduct, SORT_TO_API } from '../utils/catalog'
 
 const sortOpts = [
   { v: 'pertinence', label: 'Pertinence' },
-  { v: 'croissant',  label: 'Prix croissant' },
-  { v: 'decroissant',label: 'Prix décroissant' },
-  { v: 'nouveau',    label: 'Nouveautés' },
+  { v: 'croissant', label: 'Prix croissant' },
+  { v: 'decroissant', label: 'Prix décroissant' },
+  { v: 'nouveau', label: 'Nouveautés' },
 ]
 
 export default function Collections() {
@@ -20,15 +20,31 @@ export default function Collections() {
   const cat = params.get('cat') || 'all'
   const [sort, setSort] = useState('pertinence')
   const [modalProduct, setModalProduct] = useState(null)
+  const [categories, setCategories] = useState([])
+  const [list, setList] = useState([])
+  const [loading, setLoading] = useState(true)
   const { addToCart } = useCart()
   const reduce = useReducedMotion()
 
-  const list = useMemo(() => {
-    let out = cat === 'all' ? [...products] : products.filter((p) => p.category === cat)
-    if (sort === 'croissant')   out.sort((a, b) => a.price - b.price)
-    if (sort === 'decroissant') out.sort((a, b) => b.price - a.price)
-    if (sort === 'nouveau')     out.sort((a, b) => Number(Boolean(b.isNew)) - Number(Boolean(a.isNew)))
-    return out
+  useEffect(() => {
+    productsService.getCategories()
+      .then(({ data }) => setCategories((data.data || []).map(normalizeCategory)))
+      .catch(() => setCategories([]))
+  }, [])
+
+  useEffect(() => {
+    setLoading(true)
+    const apiParams = {
+      sort: SORT_TO_API[sort] || 'newest',
+      limit: 100,
+    }
+    if (cat !== 'all') apiParams.category = cat
+    if (sort === 'nouveau') apiParams.isNew = true
+
+    productsService.getProducts(apiParams)
+      .then(({ data }) => setList((data.data?.products || []).map(normalizeProduct)))
+      .catch(() => setList([]))
+      .finally(() => setLoading(false))
   }, [cat, sort])
 
   const setCat = (slug) => {
@@ -43,6 +59,7 @@ export default function Collections() {
 
       {/* Page header */}
       <section className="relative overflow-hidden bg-parchment px-5 py-16 md:py-20 text-center border-b border-nude/50">
+        
         <div className="absolute inset-0 warm-pattern opacity-40" />
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none">
           <img src="/logo2.png" alt="" aria-hidden className="w-48 opacity-[0.04]" onError={(e) => { e.currentTarget.style.display = 'none' }} />
@@ -56,7 +73,7 @@ export default function Collections() {
             Collections
           </h1>
           <p className="mt-3 font-josefin text-[9px] uppercase tracking-[0.24em] text-stone/60">
-            {list.length} pièces sélectionnées
+            {loading ? 'Chargement…' : `${list.length} pièce${list.length !== 1 ? 's' : ''}`}
           </p>
         </SectionReveal>
       </section>
@@ -121,19 +138,23 @@ export default function Collections() {
 
       {/* Grid */}
       <section className="mx-auto max-w-[1280px] px-5 py-10 md:px-16 md:py-14">
-        <motion.div
-          key={cat + sort}
-          className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3"
-          initial={reduce ? false : { opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.3 }}
-        >
-          {list.map((p, i) => (
-            <ProductCard key={p.id} product={p} index={i} onOpen={setModalProduct} onAdd={addToCart} />
-          ))}
-        </motion.div>
+        {loading ? (
+          <p className="py-20 text-center font-josefin text-[9px] uppercase tracking-[0.2em] text-stone/40">Chargement des produits…</p>
+        ) : (
+          <motion.div
+            key={cat + sort}
+            className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3"
+            initial={reduce ? false : { opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3 }}
+          >
+            {list.map((p, i) => (
+              <ProductCard key={p.id} product={p} index={i} onOpen={setModalProduct} onAdd={addToCart} />
+            ))}
+          </motion.div>
+        )}
 
-        {list.length === 0 && (
+        {!loading && list.length === 0 && (
           <div className="py-20 text-center">
             <p className="font-cormorant text-2xl font-light text-stone">Aucun produit trouvé</p>
           </div>

@@ -3,7 +3,6 @@ import { Dialog, DialogPanel } from '@headlessui/react'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { FiX, FiHeart, FiShoppingBag, FiArrowRight } from 'react-icons/fi'
-import { categories } from '../../data/categories'
 import { formatPrice } from '../../data/products'
 
 export default function ProductModal({ product, open, onClose, onAdd }) {
@@ -25,7 +24,7 @@ export default function ProductModal({ product, open, onClose, onAdd }) {
   if (!product) return null
 
   const stars = Math.round(product.rating || 5)
-  const catLabel = categories.find((c) => c.slug === product.category)?.name || product.category
+  const catLabel = product.categoryName || product.category || ''
 
   return (
     <AnimatePresence>

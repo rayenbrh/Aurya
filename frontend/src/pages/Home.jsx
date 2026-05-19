@@ -1,10 +1,10 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import { FiArrowRight, FiShoppingBag } from 'react-icons/fi'
-import { categories } from '../data/categories'
-import { products } from '../data/products'
 import { settingsService } from '../services/settings.service'
+import { productsService } from '../services/products.service'
+import { normalizeCategory, normalizeProduct } from '../utils/catalog'
 import SectionReveal from '../components/ui/SectionReveal'
 import CategoryCard from '../components/ui/CategoryCard'
 import ProductCard from '../components/ui/ProductCard'
@@ -52,12 +52,35 @@ export default function Home() {
   const { addToCart } = useCart()
   const [hero, setHero] = useState(defaultHero)
   const [modalProduct, setModalProduct] = useState(null)
+  const [categories, setCategories] = useState([])
+  const [best, setBest] = useState([])
 
   useEffect(() => {
     settingsService.getSettings().then((s) => s?.hero && setHero({ ...defaultHero, ...s.hero })).catch(() => {})
   }, [])
 
-  const best = useMemo(() => [...products].filter((p) => p.isBestSeller || p.isNew).slice(0, 8), [])
+  useEffect(() => {
+    productsService.getCategories()
+      .then(({ data }) => setCategories((data.data || []).map(normalizeCategory)))
+      .catch(() => setCategories([]))
+  }, [])
+
+  useEffect(() => {
+    const loadBest = async () => {
+      try {
+        const { data } = await productsService.getProducts({ isBestSeller: true, limit: 8 })
+        let items = (data.data?.products || []).map(normalizeProduct)
+        if (!items.length) {
+          const fallback = await productsService.getProducts({ limit: 8 })
+          items = (fallback.data.data?.products || []).map(normalizeProduct)
+        }
+        setBest(items)
+      } catch {
+        setBest([])
+      }
+    }
+    loadBest()
+  }, [])
 
   const headlineWords = `${hero.headlineTop} ${hero.headlineItalic} ${hero.headlineBottom}`.trim().split(' ')
   const italicWord = hero.headlineItalic?.trim()
@@ -237,13 +260,13 @@ export default function Home() {
         <div className="mx-auto max-w-[1280px] grid grid-cols-2 gap-5 lg:grid-cols-3">
           {categories.map((c, i) => (
             <motion.div
-              key={c.id}
+              key={c.id || c._id}
               initial={reduce ? false : { opacity: 0, y: 24 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: '-60px' }}
               transition={{ duration: 0.55, delay: i * 0.08 }}
             >
-              <CategoryCard category={c} />
+              <CategoryCard category={c} panelColor={c.panelColor} />
             </motion.div>
           ))}
         </div>

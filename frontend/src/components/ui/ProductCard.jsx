@@ -1,13 +1,12 @@
 import { motion, useReducedMotion } from 'framer-motion'
 import { FiHeart, FiShoppingBag } from 'react-icons/fi'
 import { useState } from 'react'
-import { categories } from '../../data/categories'
 import { formatPrice } from '../../data/products'
 
 export default function ProductCard({ product, onOpen, onAdd, index = 0 }) {
   const reduce = useReducedMotion()
   const [wished, setWished] = useState(false)
-  const catLabel = categories.find((c) => c.slug === product.category)?.name || product.category
+  const catLabel = product.categoryName || product.category || ''
 
   return (
     <motion.article

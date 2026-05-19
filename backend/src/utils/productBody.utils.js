@@ -1,6 +1,6 @@
 const BOOL_KEYS = ['isAvailable', 'isNew', 'isBestSeller', 'isFeatured']
 const NUM_KEYS = ['price', 'stock', 'comparePrice', 'rating', 'reviewCount', 'orderCount', 'viewCount']
-const STRIP_KEYS = ['_id', '__v', 'slug', 'createdAt', 'updatedAt', 'images', 'category']
+const STRIP_KEYS = ['_id', '__v', 'slug', 'createdAt', 'updatedAt', 'images']
 
 const toBool = (v) => v === true || v === 'true' || v === '1'
 const toNum = (v) => (v === '' || v == null ? undefined : Number(v))
