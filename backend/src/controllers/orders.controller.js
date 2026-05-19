@@ -8,24 +8,54 @@ const maskPhone = (phone = '') => phone.replace(/(\d{3})\d+(\d{2})/, '$1****$2')
 export async function createOrder(req, res) {
   const { items = [], customer, notes, source } = req.body
   if (!items.length) return res.status(400).json({ success: false, message: 'Panier vide' })
+
+  const fullName = String(customer?.fullName || '').trim()
+  const phone = String(customer?.phone || '').trim()
+  const street = String(customer?.address?.street || '').trim()
+  const city = String(customer?.address?.city || 'Tunis').trim() || 'Tunis'
+  const region = customer?.address?.region != null ? String(customer.address.region).trim() : ''
+  const country = String(customer?.address?.country || 'Tunisie').trim() || 'Tunisie'
+
+  if (!fullName || !phone || !street) {
+    return res.status(400).json({
+      success: false,
+      message: 'Nom complet, téléphone et adresse complète sont obligatoires.',
+    })
+  }
+
   const ids = items.map((i) => i.productId)
   const products = await Product.find({ _id: { $in: ids }, isAvailable: true })
+  if (products.length !== ids.length) {
+    return res.status(400).json({ success: false, message: 'Un ou plusieurs produits ne sont plus disponibles.' })
+  }
+
   const mapped = items.map((i) => {
     const p = products.find((x) => String(x._id) === String(i.productId))
-    if (!p) throw new Error('Produit invalide')
+    if (!p) return null
     return {
       product: p._id,
       productName: p.name,
       productBgLabel: p.bgLabel,
-      quantity: i.quantity,
+      quantity: Number(i.quantity) || 0,
       price: p.price,
     }
   })
+  if (mapped.some((m) => !m || m.quantity < 1)) {
+    return res.status(400).json({ success: false, message: 'Quantité invalide.' })
+  }
+
   const order = await Order.create({
     user: req.user?.id || null,
-    customer,
+    customer: {
+      fullName,
+      phone,
+      email: customer?.email ? String(customer.email).trim() : undefined,
+      address: { street, city, region: region || undefined, country },
+      comments: customer?.comments ? String(customer.comments).trim() : undefined,
+      isGuest: customer?.isGuest !== false,
+    },
     items: mapped,
-    notes,
+    notes: notes ? String(notes).trim() : undefined,
     source: source || 'website',
   })
   order.whatsappUrl = notifyAdminNewOrder(order)

@@ -28,6 +28,7 @@ const Customers = lazy(() => import('./pages/admin/Customers'))
 const Analytics = lazy(() => import('./pages/admin/Analytics'))
 const Settings = lazy(() => import('./pages/admin/Settings'))
 const OrderTracking = lazy(() => import('./pages/OrderTracking'))
+const Checkout = lazy(() => import('./pages/Checkout'))
 
 function Loading() {
   const location = useLocation()
@@ -69,6 +70,7 @@ function AppRoutes() {
             <Route path="/a-propos" element={<About />} />
             <Route path="/univers" element={<Navigate to="/a-propos" replace />} />
             <Route path="/contact" element={<Contact />} />
+            <Route path="/commande" element={<Checkout />} />
             <Route path="/compte" element={<RequireAuth><Account /></RequireAuth>} />
             <Route path="/suivi" element={<OrderTracking />} />
             <Route path="/suivi/:orderNumber" element={<OrderTracking />} />

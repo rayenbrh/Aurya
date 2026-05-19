@@ -1,12 +1,13 @@
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { Dialog, DialogPanel } from '@headlessui/react'
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { FiX, FiHeart, FiShoppingBag, FiArrowRight } from 'react-icons/fi'
 import { formatPrice } from '../../data/products'
 
 export default function ProductModal({ product, open, onClose, onAdd }) {
   const reduce = useReducedMotion()
+  const navigate = useNavigate()
   const [added, setAdded] = useState(false)
   const [wished, setWished] = useState(false)
 
@@ -148,14 +149,17 @@ export default function ProductModal({ product, open, onClose, onAdd }) {
                         <FiHeart size={15} className={wished ? 'fill-bark stroke-bark' : 'text-stone/50'} />
                       </button>
                     </div>
-                    <Link to="/contact" onClick={onClose}>
-                      <button
-                        type="button"
-                        className="btn-outline-bark h-12 w-full justify-center text-[9px]"
-                      >
-                        Finaliser la commande <FiArrowRight size={12} />
-                      </button>
-                    </Link>
+                    <button
+                      type="button"
+                      className="btn-outline-bark h-12 w-full justify-center text-[9px]"
+                      onClick={() => {
+                        onAdd?.(product)
+                        onClose?.()
+                        navigate('/commande')
+                      }}
+                    >
+                      Finaliser la commande <FiArrowRight size={12} />
+                    </button>
                   </div>
                 </div>
               </div>

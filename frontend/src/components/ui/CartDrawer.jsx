@@ -3,7 +3,6 @@ import { Dialog, DialogPanel } from '@headlessui/react'
 import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { FiX, FiMinus, FiPlus, FiTrash2, FiShoppingBag } from 'react-icons/fi'
-import toast from 'react-hot-toast'
 import { formatPrice } from '../../data/products'
 import { useCart } from '../../context/CartContext'
 
@@ -139,13 +138,13 @@ export default function CartDrawer({ open, onClose }) {
                     <span className="font-josefin text-[9px] uppercase tracking-[0.2em] text-stone">Sous-total</span>
                     <span className="font-cormorant text-[26px] font-light text-olive">{totalPrice}</span>
                   </div>
-                  <button
-                    type="button"
-                    className="btn-bark h-[52px] w-full justify-center text-[9px]"
-                    onClick={() => toast('Bientôt disponible')}
+                  <Link
+                    to="/commande"
+                    onClick={onClose}
+                    className="btn-bark flex h-[52px] w-full items-center justify-center text-[9px]"
                   >
                     Passer la commande →
-                  </button>
+                  </Link>
                   <p className="mt-3 text-center font-josefin text-[8px] uppercase tracking-[0.18em] text-stone/50">
                     Livraison sécurisée en Tunisie
                   </p>
