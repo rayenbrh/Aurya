@@ -5,10 +5,10 @@ import { serializeSettings, toAbsoluteMediaUrl } from '../utils/media.utils.js'
 const getOrCreate = () =>
   SiteSettings.findOneAndUpdate({ key: 'main' }, { $setOnInsert: { key: 'main' } }, { upsert: true, new: true })
 
-export async function getSettings(_req, res) {
+export async function getSettings(req, res) {
   const settings = await getOrCreate()
   res.set('Cache-Control', 'no-cache')
-  return res.json({ success: true, data: serializeSettings(settings), message: 'Paramètres chargés' })
+  return res.json({ success: true, data: serializeSettings(settings, req), message: 'Paramètres chargés' })
 }
 
 export async function patchHeroText(req, res) {
@@ -31,7 +31,11 @@ export async function patchHeroImage(req, res) {
     { $set: { 'hero.imageUrl': localUrl, 'hero.imagePublicId': localUrl } },
     { new: true },
   )
-  return res.json({ success: true, data: { imageUrl: toAbsoluteMediaUrl(localUrl) }, message: 'Image héro mise à jour' })
+  return res.json({
+    success: true,
+    data: { imageUrl: toAbsoluteMediaUrl(localUrl, req) },
+    message: 'Image héro mise à jour',
+  })
 }
 
 export async function patchMarquee(req, res) {

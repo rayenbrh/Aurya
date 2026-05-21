@@ -7,6 +7,7 @@ import path from 'path'
 import { fileURLToPath } from 'url'
 import { connectDB } from './config/db.js'
 import { env } from './config/env.js'
+import { getRequestOrigin } from './utils/media.utils.js'
 import { corsOptions } from './config/corsOptions.js'
 import authRoutes from './routes/auth.routes.js'
 import productRoutes from './routes/products.routes.js'
@@ -51,8 +52,8 @@ app.get('/api/health', (_req, res) => {
   res.json({ success: true, data: { status: 'ok', timestamp: new Date().toISOString(), env: env.NODE_ENV }, message: 'API OK' })
 })
 
-app.get('/api/config', (_req, res) => {
-  const origin = (env.API_PUBLIC_URL || '').replace(/\/+$/, '')
+app.get('/api/config', (req, res) => {
+  const origin = getRequestOrigin(req)
   res.json({
     success: true,
     data: {
@@ -67,7 +68,7 @@ if (env.NODE_ENV === 'production') {
   const frontendBuild = path.join(__dirname, '../../frontend/dist')
   app.use(express.static(frontendBuild))
   app.get('*', (req, res, next) => {
-    if (req.path.startsWith('/api/')) return next()
+    if (req.path.startsWith('/api/') || req.path.startsWith('/uploads/')) return next()
     return res.sendFile(path.join(frontendBuild, 'index.html'))
   })
 }

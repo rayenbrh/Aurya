@@ -5,8 +5,17 @@ export function getApiPublicOrigin() {
   return base
 }
 
+/** Origin for absolute media URLs — env first, then reverse-proxy headers. */
+export function getRequestOrigin(req) {
+  const fromEnv = getApiPublicOrigin()
+  if (fromEnv) return fromEnv
+  if (!req) return ''
+  const proto = (req.get('x-forwarded-proto') || req.protocol || 'https').split(',')[0].trim()
+  const host = (req.get('x-forwarded-host') || req.get('host') || '').split(',')[0].trim()
+  return host ? `${proto}://${host}`.replace(/\/+$/, '') : ''
+}
+
 /** Turn /uploads/... or full URL into absolute URL for browsers (split frontend/backend deploy). */
-/** Store only /uploads/... paths in MongoDB; accept absolute URLs from the admin UI. */
 export function toStoredMediaPath(publicPath = '') {
   if (!publicPath) return ''
   if (/^https?:\/\//i.test(publicPath)) {
@@ -19,32 +28,33 @@ export function toStoredMediaPath(publicPath = '') {
   return publicPath.startsWith('/') ? publicPath : `/${publicPath}`
 }
 
-export function toAbsoluteMediaUrl(publicPath = '') {
+export function toAbsoluteMediaUrl(publicPath = '', req) {
   if (!publicPath) return ''
   if (/^https?:\/\//i.test(publicPath)) return publicPath
-  const origin = getApiPublicOrigin()
-  const normalized = publicPath.startsWith('/') ? publicPath : `/${publicPath}`
+  const origin = getRequestOrigin(req)
+  const normalized = toStoredMediaPath(publicPath)
   return origin ? `${origin}${normalized}` : normalized
 }
 
-export function serializeProduct(product) {
+export function serializeProduct(product, req) {
   if (!product) return product
   const doc = product.toObject ? product.toObject() : { ...product }
   if (Array.isArray(doc.images)) {
-    doc.images = doc.images.map((img) => toAbsoluteMediaUrl(toStoredMediaPath(img)))
+    doc.images = doc.images.map((img) => toAbsoluteMediaUrl(toStoredMediaPath(img), req))
   }
   return doc
 }
 
-export function serializeProducts(products = []) {
-  return products.map(serializeProduct)
+export function serializeProducts(products = [], req) {
+  return products.map((p) => serializeProduct(p, req))
 }
 
-export function serializeSettings(settings) {
+export function serializeSettings(settings, req) {
   if (!settings) return settings
   const doc = settings.toObject ? settings.toObject() : { ...settings }
   if (doc.hero?.imageUrl) {
-    doc.hero = { ...doc.hero, imageUrl: toAbsoluteMediaUrl(doc.hero.imageUrl) }
+    const stored = toStoredMediaPath(doc.hero.imageUrl)
+    doc.hero = { ...doc.hero, imageUrl: toAbsoluteMediaUrl(stored, req) }
   }
   return doc
 }

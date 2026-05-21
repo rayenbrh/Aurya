@@ -12,9 +12,9 @@ import { fileURLToPath } from 'url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
-export const getAdminProducts = async (_req, res) => {
+export const getAdminProducts = async (req, res) => {
   const products = await Product.find().populate('category').sort({ createdAt: -1 })
-  res.json({ success: true, data: serializeProducts(products), message: 'Produits admin' })
+  res.json({ success: true, data: serializeProducts(products, req), message: 'Produits admin' })
 }
 
 export const createAdminProduct = async (req, res) => {
@@ -28,30 +28,58 @@ export const createAdminProduct = async (req, res) => {
   const files = req.files || []
   body.images = files.map((f) => toPublicUploadUrl(f.path))
   const product = await Product.create(body)
-  res.status(201).json({ success: true, data: serializeProduct(product), message: 'Produit créé' })
+  res.status(201).json({ success: true, data: serializeProduct(product, req), message: 'Produit créé' })
 }
 
 export const updateAdminProduct = async (req, res) => {
   const product = await Product.findById(req.params.id)
   if (!product) return res.status(404).json({ success: false, message: 'Produit introuvable' })
   const body = parseProductBody(req.body)
-  let existingImages = product.images || []
-  if (body.existingImages !== undefined) {
+  const newImages = (req.files || []).map((f) => toPublicUploadUrl(f.path))
+  const expectsFiles = req.body?.hasNewImages === 'true' || req.body?.hasNewImages === true
+  if (expectsFiles && newImages.length === 0) {
+    return res.status(400).json({
+      success: false,
+      message: 'Les images n\'ont pas été reçues par le serveur. Réessayez (évitez les très gros fichiers).',
+    })
+  }
+
+  const replaceImages = req.body?.replaceImages === 'true' || req.body?.replaceImages === true
+  let finalImages = [...(product.images || [])]
+
+  if (newImages.length > 0) {
+    if (replaceImages) {
+      finalImages = newImages
+    } else {
+      let existingImages = product.images || []
+      if (req.body?.existingImages !== undefined) {
+        try {
+          const raw = req.body.existingImages
+          const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw
+          existingImages = Array.isArray(parsed) ? parsed.map(toStoredMediaPath) : []
+        } catch {
+          existingImages = []
+        }
+      }
+      finalImages = [...existingImages, ...newImages].slice(0, 4)
+    }
+  } else if (req.body?.existingImages !== undefined) {
     try {
-      const parsed = typeof body.existingImages === 'string' ? JSON.parse(body.existingImages) : body.existingImages
-      existingImages = Array.isArray(parsed) ? parsed.map(toStoredMediaPath) : []
+      const raw = req.body.existingImages
+      const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw
+      finalImages = Array.isArray(parsed) ? parsed.map(toStoredMediaPath).slice(0, 4) : finalImages
     } catch {
-      existingImages = []
+      /* keep current */
     }
   }
-  const newImages = (req.files || []).map((f) => toPublicUploadUrl(f.path))
-  body.images = [...existingImages, ...newImages].slice(0, 4)
-  const kept = new Set(body.images.map(toStoredMediaPath))
+
+  const kept = new Set(finalImages.map(toStoredMediaPath))
   const removed = (product.images || []).filter((img) => !kept.has(toStoredMediaPath(img)))
   await Promise.all(removed.map((img) => deleteLocalUpload(img)))
-  delete body.existingImages
-  const updated = await Product.findByIdAndUpdate(req.params.id, body, { new: true })
-  res.json({ success: true, data: serializeProduct(updated), message: 'Produit mis à jour' })
+
+  body.images = finalImages
+  const updated = await Product.findByIdAndUpdate(req.params.id, { $set: body }, { new: true, runValidators: true })
+  res.json({ success: true, data: serializeProduct(updated, req), message: 'Produit mis à jour' })
 }
 
 export const deleteProduct = async (req, res) => {

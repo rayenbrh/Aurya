@@ -65,8 +65,14 @@ const ProductForm = () => {
     try {
       const fd = buildFormData(form)
       if (isEdit) {
-        const kept = files.length > 0 ? [] : (form.images || [])
-        fd.append('existingImages', JSON.stringify(kept))
+        if (files.length > 0) {
+          fd.append('replaceImages', 'true')
+          fd.append('hasNewImages', 'true')
+          fd.append('existingImages', '[]')
+        } else {
+          const kept = (form.images || []).map((img) => img)
+          fd.append('existingImages', JSON.stringify(kept))
+        }
       }
       files.forEach((f) => fd.append('images', f))
       if (isEdit) await adminService.updateProduct(id, fd)

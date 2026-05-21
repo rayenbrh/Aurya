@@ -1,9 +1,13 @@
+import { getUploadsOrigin } from '../services/config.service'
+
 const PANEL_COLORS = ['#885B45', '#7F8573', '#D7C5BC', '#3D2418', '#A88A53', '#EDE3DB']
 
 export const formatPrice = (value) =>
   `${new Intl.NumberFormat('fr-FR').format(Math.round(Number(value) || 0)).replace(/\u202f/g, ' ')} TND`
 
 function getApiOrigin() {
+  const fromConfig = getUploadsOrigin()
+  if (fromConfig) return fromConfig
   const url = import.meta.env.VITE_API_URL
   if (!url) return ''
   try {

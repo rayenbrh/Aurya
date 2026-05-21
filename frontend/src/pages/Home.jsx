@@ -4,7 +4,7 @@ import { motion, useReducedMotion } from 'framer-motion'
 import { FiArrowRight, FiShoppingBag } from 'react-icons/fi'
 import { settingsService } from '../services/settings.service'
 import { productsService } from '../services/products.service'
-import { normalizeCategory, normalizeProduct } from '../utils/catalog'
+import { normalizeCategory, normalizeProduct, resolveImageUrl } from '../utils/catalog'
 import SectionReveal from '../components/ui/SectionReveal'
 import CategoryCard from '../components/ui/CategoryCard'
 import ProductCard from '../components/ui/ProductCard'
@@ -56,7 +56,11 @@ export default function Home() {
   const [best, setBest] = useState([])
 
   useEffect(() => {
-    settingsService.getSettings().then((s) => s?.hero && setHero({ ...defaultHero, ...s.hero })).catch(() => {})
+    settingsService.getSettings().then((s) => {
+      if (!s?.hero) return
+      const imageUrl = resolveImageUrl(s.hero.imageUrl)
+      setHero({ ...defaultHero, ...s.hero, imageUrl })
+    }).catch(() => {})
   }, [])
 
   useEffect(() => {
@@ -176,7 +180,7 @@ export default function Home() {
             {hero.imageUrl ? (
               <img
                 key={hero.imageUrl}
-                src={hero.imageUrl}
+                src={resolveImageUrl(hero.imageUrl)}
                 alt="Collection vedette"
                 className="h-full w-full object-cover"
               />

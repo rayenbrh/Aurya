@@ -20,7 +20,7 @@ export async function getProducts(req, res) {
   const products = await Product.find(q).populate('category').sort(sortMap[sort] || sortMap.newest).limit(Number(limit)).skip((Number(page) - 1) * Number(limit))
   return res.json({
     success: true,
-    data: { products: serializeProducts(products), total, page: Number(page), totalPages: Math.ceil(total / Number(limit)) },
+    data: { products: serializeProducts(products, req), total, page: Number(page), totalPages: Math.ceil(total / Number(limit)) },
     message: 'Produits chargés',
   })
 }
@@ -33,5 +33,5 @@ export async function getCategoriesAll(_req, res) {
 export async function getProductBySlug(req, res) {
   const product = await Product.findOneAndUpdate({ slug: req.params.slug, isAvailable: true }, { $inc: { viewCount: 1 } }, { new: true }).populate('category')
   if (!product) return res.status(404).json({ success: false, message: 'Produit introuvable' })
-  return res.json({ success: true, data: serializeProduct(product), message: 'Produit chargé' })
+  return res.json({ success: true, data: serializeProduct(product, req), message: 'Produit chargé' })
 }

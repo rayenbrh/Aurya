@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { adminService } from '../../services/admin.service'
+import { resolveImageUrl } from '../../utils/catalog'
 
 const TABS = ['hero', 'marquee', 'contact', 'seo']
 
@@ -76,8 +77,9 @@ const Settings = () => {
       const fd = new FormData()
       fd.append('heroImage', heroImageFile)
       const { data } = await adminService.updateHeroImage(fd)
-      const url = data.data.imageUrl
-      setSettings((s) => ({ ...s, hero: { ...s.hero, imageUrl: `${url}${url.includes('?') ? '&' : '?'}t=${Date.now()}` } }))
+      const url = resolveImageUrl(data.data.imageUrl)
+      const bust = `${url}${url.includes('?') ? '&' : '?'}t=${Date.now()}`
+      setSettings((s) => ({ ...s, hero: { ...s.hero, imageUrl: bust } }))
       setHeroImageFile(null)
       showToast('Image héro enregistrée')
     } catch (err) {
@@ -116,7 +118,7 @@ const Settings = () => {
             {/* Image section */}
             <p className="mb-4 font-josefin text-[8px] uppercase tracking-[0.2em] text-stone/50">Image héro</p>
             {hero.imageUrl
-              ? <img src={hero.imageUrl} alt="Hero" className="mb-3 max-h-[160px] w-full object-cover border border-nude/60" />
+              ? <img src={resolveImageUrl(hero.imageUrl)} alt="Hero" className="mb-3 max-h-[160px] w-full object-cover border border-nude/60" />
               : <div className="mb-3 grid h-[100px] place-items-center bg-parchment font-josefin text-[8px] uppercase tracking-[0.15em] text-stone/30">Aucune image</div>
             }
             <input type="file" accept="image/jpeg,image/png,image/webp" className="mb-3 block w-full font-josefin text-[9px] text-stone/50"
@@ -153,7 +155,7 @@ const Settings = () => {
             <p className="mb-4 text-center font-josefin text-[8px] uppercase tracking-[0.2em] text-stone/40">Aperçu en direct</p>
             <div className="relative border border-nude/60" style={{
               height: 200,
-              background: hero.imageUrl ? `url(${hero.imageUrl}) center/cover` : '#EDE8E0',
+              background: hero.imageUrl ? `url(${resolveImageUrl(hero.imageUrl)}) center/cover` : '#EDE8E0',
             }}>
               {hero.tag1Name && (
                 <div className="absolute bottom-3 left-3 border border-nude/60 bg-cream/90 px-3 py-2">
