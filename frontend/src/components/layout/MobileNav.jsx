@@ -5,7 +5,7 @@ import { useAuth } from '../../context/AuthContext'
 
 const links = [
   { to: '/',           label: 'Accueil',     Icon: FiHome,  end: true },
-  { to: '/collections',label: 'Collections', Icon: FiGrid,  end: false },
+  { to: '/collections', label: 'Produits', Icon: FiGrid, end: false },
   { to: '/a-propos',   label: 'À propos',    Icon: FiInfo,  end: false },
   { to: '/contact',    label: 'Contact',     Icon: FiPhone, end: false },
 ]

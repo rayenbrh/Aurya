@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
-import { Link, NavLink, useNavigate } from 'react-router-dom'
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { FiShoppingBag } from 'react-icons/fi'
 import { useCart } from '../../context/CartContext'
 import { useAuth } from '../../context/AuthContext'
@@ -8,7 +8,7 @@ import MobileNav from './MobileNav'
 
 const navLinks = [
   { to: '/',           label: 'Home',        end: true },
-  { to: '/collections',label: 'Collections', end: false },
+  { to: '/collections', label: 'Produits', end: false },
   { to: '/a-propos',   label: 'À propos',    end: false },
   { to: '/contact',    label: 'Contact',     end: false },
 ]
@@ -19,7 +19,12 @@ export default function Navbar({ onCartOpen }) {
   const { totalItems }              = useCart()
   const { user, logout }            = useAuth()
   const navigate                    = useNavigate()
+  const location                    = useLocation()
   const isAuthenticated             = Boolean(user)
+
+  useEffect(() => {
+    setMobileOpen(false)
+  }, [location.pathname])
 
   const initials = user?.firstName
     ? `${user.firstName[0] ?? ''}${user.lastName?.[0] ?? ''}`.toUpperCase()

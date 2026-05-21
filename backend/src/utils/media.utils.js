@@ -6,6 +6,19 @@ export function getApiPublicOrigin() {
 }
 
 /** Turn /uploads/... or full URL into absolute URL for browsers (split frontend/backend deploy). */
+/** Store only /uploads/... paths in MongoDB; accept absolute URLs from the admin UI. */
+export function toStoredMediaPath(publicPath = '') {
+  if (!publicPath) return ''
+  if (/^https?:\/\//i.test(publicPath)) {
+    try {
+      return new URL(publicPath).pathname
+    } catch {
+      return publicPath
+    }
+  }
+  return publicPath.startsWith('/') ? publicPath : `/${publicPath}`
+}
+
 export function toAbsoluteMediaUrl(publicPath = '') {
   if (!publicPath) return ''
   if (/^https?:\/\//i.test(publicPath)) return publicPath
@@ -18,7 +31,7 @@ export function serializeProduct(product) {
   if (!product) return product
   const doc = product.toObject ? product.toObject() : { ...product }
   if (Array.isArray(doc.images)) {
-    doc.images = doc.images.map((img) => toAbsoluteMediaUrl(img))
+    doc.images = doc.images.map((img) => toAbsoluteMediaUrl(toStoredMediaPath(img)))
   }
   return doc
 }

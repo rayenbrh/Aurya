@@ -4,7 +4,7 @@ import Product from '../models/Product.js'
 import SiteSettings from '../models/SiteSettings.js'
 import User from '../models/User.js'
 import { deleteLocalUpload, toPublicUploadUrl } from '../utils/upload.utils.js'
-import { serializeProduct, serializeProducts } from '../utils/media.utils.js'
+import { serializeProduct, serializeProducts, toStoredMediaPath } from '../utils/media.utils.js'
 import { parseProductBody } from '../utils/productBody.utils.js'
 import fs from 'fs'
 import path from 'path'
@@ -35,10 +35,19 @@ export const updateAdminProduct = async (req, res) => {
   const product = await Product.findById(req.params.id)
   if (!product) return res.status(404).json({ success: false, message: 'Produit introuvable' })
   const body = parseProductBody(req.body)
-  const existingImages = body.existingImages ? JSON.parse(body.existingImages) : product.images || []
+  let existingImages = product.images || []
+  if (body.existingImages !== undefined) {
+    try {
+      const parsed = typeof body.existingImages === 'string' ? JSON.parse(body.existingImages) : body.existingImages
+      existingImages = Array.isArray(parsed) ? parsed.map(toStoredMediaPath) : []
+    } catch {
+      existingImages = []
+    }
+  }
   const newImages = (req.files || []).map((f) => toPublicUploadUrl(f.path))
   body.images = [...existingImages, ...newImages].slice(0, 4)
-  const removed = (product.images || []).filter((img) => !body.images.includes(img))
+  const kept = new Set(body.images.map(toStoredMediaPath))
+  const removed = (product.images || []).filter((img) => !kept.has(toStoredMediaPath(img)))
   await Promise.all(removed.map((img) => deleteLocalUpload(img)))
   delete body.existingImages
   const updated = await Product.findByIdAndUpdate(req.params.id, body, { new: true })

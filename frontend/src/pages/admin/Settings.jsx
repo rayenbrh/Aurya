@@ -76,7 +76,8 @@ const Settings = () => {
       const fd = new FormData()
       fd.append('heroImage', heroImageFile)
       const { data } = await adminService.updateHeroImage(fd)
-      setSettings((s) => ({ ...s, hero: { ...s.hero, imageUrl: data.data.imageUrl } }))
+      const url = data.data.imageUrl
+      setSettings((s) => ({ ...s, hero: { ...s.hero, imageUrl: `${url}${url.includes('?') ? '&' : '?'}t=${Date.now()}` } }))
       setHeroImageFile(null)
       showToast('Image héro enregistrée')
     } catch (err) {

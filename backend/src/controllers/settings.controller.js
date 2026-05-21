@@ -23,11 +23,14 @@ export async function patchHeroText(req, res) {
 export async function patchHeroImage(req, res) {
   if (!req.file) return res.status(400).json({ success: false, message: 'Image hero requise' })
   const settings = await getOrCreate()
-  if (settings.hero.imagePublicId) await deleteLocalUpload(settings.hero.imagePublicId)
+  const oldUrl = settings.hero?.imageUrl || settings.hero?.imagePublicId
+  if (oldUrl) await deleteLocalUpload(oldUrl)
   const localUrl = toPublicUploadUrl(req.file.path)
-  settings.hero.imageUrl = localUrl
-  settings.hero.imagePublicId = localUrl
-  await settings.save()
+  await SiteSettings.findOneAndUpdate(
+    { key: 'main' },
+    { $set: { 'hero.imageUrl': localUrl, 'hero.imagePublicId': localUrl } },
+    { new: true },
+  )
   return res.json({ success: true, data: { imageUrl: toAbsoluteMediaUrl(localUrl) }, message: 'Image héro mise à jour' })
 }
 

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { adminService } from '../../services/admin.service'
 import { getAdminErrorMessage } from '../../utils/adminApi.js'
+import { resolveImageUrl } from '../../utils/catalog.js'
 
 const TOGGLES = [
   { key: 'isAvailable', label: 'Disponible' },
@@ -63,6 +64,10 @@ const ProductForm = () => {
     setSaving(true)
     try {
       const fd = buildFormData(form)
+      if (isEdit) {
+        const kept = files.length > 0 ? [] : (form.images || [])
+        fd.append('existingImages', JSON.stringify(kept))
+      }
       files.forEach((f) => fd.append('images', f))
       if (isEdit) await adminService.updateProduct(id, fd)
       else await adminService.createProduct(fd)
@@ -135,6 +140,18 @@ const ProductForm = () => {
 
             <label className="block">
               <span className="mb-2 block font-josefin text-[7px] uppercase tracking-[0.18em] text-stone/40">Images</span>
+              {isEdit && (form.images || []).length > 0 && (
+                <div className="mb-3 flex flex-wrap gap-2">
+                  {(form.images || []).map((src) => (
+                    <img
+                      key={src}
+                      src={resolveImageUrl(src)}
+                      alt=""
+                      className="h-16 w-16 border border-nude/60 object-cover"
+                    />
+                  ))}
+                </div>
+              )}
               <input
                 type="file"
                 multiple
@@ -142,6 +159,13 @@ const ProductForm = () => {
                 className="block w-full font-josefin text-[9px] text-stone/50"
                 onChange={(e) => setFiles(Array.from(e.target.files || []))}
               />
+              {isEdit && (
+                <p className="mt-2 font-josefin text-[7px] uppercase tracking-[0.12em] text-stone/45">
+                  {files.length > 0
+                    ? 'Les nouvelles images remplaceront les anciennes.'
+                    : 'Conservez les images actuelles ou choisissez de nouveaux fichiers.'}
+                </p>
+              )}
             </label>
           </div>
 

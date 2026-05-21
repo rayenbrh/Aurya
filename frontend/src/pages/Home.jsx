@@ -175,6 +175,7 @@ export default function Home() {
           >
             {hero.imageUrl ? (
               <img
+                key={hero.imageUrl}
                 src={hero.imageUrl}
                 alt="Collection vedette"
                 className="h-full w-full object-cover"
