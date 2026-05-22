@@ -67,7 +67,7 @@ export default function MobileNav({ open, onClose }) {
             transition={panelTransition}
           >
             {/* Header */}
-            <div className="flex h-[72px] shrink-0 items-center justify-between border-b border-nude/50 px-5">
+            <div className="relative flex h-[72px] shrink-0 items-center justify-center border-b border-nude/50 px-5">
               <Link
                 to="/"
                 onClick={onClose}
@@ -79,7 +79,7 @@ export default function MobileNav({ open, onClose }) {
                 type="button"
                 aria-label="Fermer le menu"
                 onClick={onClose}
-                className="grid h-10 w-10 place-items-center rounded-full text-stone transition-colors hover:bg-nude/60 hover:text-ink"
+                className="absolute right-3 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full text-stone transition-colors hover:bg-nude/60 hover:text-ink"
               >
                 <FiX size={20} />
               </button>
