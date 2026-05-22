@@ -159,7 +159,9 @@ export default function Navbar({ onCartOpen }) {
             {/* Mobile hamburger */}
             <button
               type="button"
-              aria-label="Menu"
+              aria-label={mobileOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
+              aria-expanded={mobileOpen}
+              aria-controls="mobile-nav-panel"
               className="relative h-9 w-9 md:hidden"
               onClick={() => setMobileOpen((v) => !v)}
             >

@@ -1,15 +1,17 @@
 import { useEffect } from 'react'
-import { motion } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import { NavLink, Link, useLocation } from 'react-router-dom'
-import { FiHome, FiGrid, FiInfo, FiPhone, FiUser } from 'react-icons/fi'
+import { FiHome, FiGrid, FiInfo, FiPhone, FiUser, FiX } from 'react-icons/fi'
 import { useAuth } from '../../context/AuthContext'
 
 const links = [
-  { to: '/',           label: 'Accueil',     Icon: FiHome,  end: true },
-  { to: '/collections', label: 'Produits', Icon: FiGrid, end: false },
-  { to: '/a-propos',   label: 'À propos',    Icon: FiInfo,  end: false },
-  { to: '/contact',    label: 'Contact',     Icon: FiPhone, end: false },
+  { to: '/',            label: 'Accueil',  Icon: FiHome,  end: true },
+  { to: '/collections', label: 'Produits', Icon: FiGrid,  end: false },
+  { to: '/a-propos',    label: 'À propos', Icon: FiInfo,  end: false },
+  { to: '/contact',     label: 'Contact',  Icon: FiPhone, end: false },
 ]
+
+const panelTransition = { type: 'tween', duration: 0.28, ease: [0.76, 0, 0.24, 1] }
 
 export default function MobileNav({ open, onClose }) {
   const { user } = useAuth()
@@ -28,90 +30,130 @@ export default function MobileNav({ open, onClose }) {
     }
   }, [open])
 
-  if (!open) return null
+  useEffect(() => {
+    if (!open) return undefined
+    const onKey = (e) => {
+      if (e.key === 'Escape') onClose()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [open, onClose])
 
   return (
-    <>
-      <button
-        type="button"
-        aria-label="Fermer le menu"
-        className="fixed inset-0 z-[55] md:hidden"
-        style={{ background: 'rgba(42,31,26,0.5)', backdropFilter: 'blur(4px)' }}
-        onClick={onClose}
-      />
+    <AnimatePresence>
+      {open && (
+        <>
+          <motion.button
+            type="button"
+            aria-label="Fermer le menu"
+            className="fixed inset-0 z-[55] md:hidden"
+            style={{ background: 'rgba(42,31,26,0.45)' }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.22 }}
+            onClick={onClose}
+          />
 
-      <motion.div
-        className="fixed inset-x-0 bottom-0 z-[56] max-h-[88vh] overflow-hidden rounded-t-[28px] bg-cream shadow-modal md:hidden"
-        initial={{ y: '100%' }}
-        animate={{ y: 0 }}
-        transition={{ type: 'spring', stiffness: 380, damping: 32 }}
-      >
-        <div className="flex justify-center pb-2 pt-3">
-          <span className="h-1 w-12 rounded-pill bg-nude" />
-        </div>
-
-        <div className="px-8 pb-10 pt-4">
-          <p className="font-cormorant text-[24px] italic font-light text-ink">Aurya</p>
-
-          <nav className="mt-8 flex flex-col gap-1">
-            {links.map((l) => (
-              <NavLink
-                key={l.to}
-                to={l.to}
-                end={l.end}
-                onClick={onClose}
-                className={({ isActive }) =>
-                  `flex items-center gap-4 rounded-card px-4 py-3.5 transition-colors ${
-                    isActive
-                      ? 'bg-bark/[0.07] text-bark'
-                      : 'text-stone hover:bg-nude/40 hover:text-ink'
-                  }`
-                }
-              >
-                {({ isActive }) => (
-                  <>
-                    <l.Icon size={16} className={isActive ? 'text-bark' : 'text-stone/60'} />
-                    <span className="font-josefin text-[10px] uppercase tracking-[0.22em]">{l.label}</span>
-                    {isActive && (
-                      <span className="ml-auto h-1.5 w-1.5 rounded-full bg-bark" />
-                    )}
-                  </>
-                )}
-              </NavLink>
-            ))}
-          </nav>
-
-          <div className="mt-8 flex flex-col gap-3 border-t border-nude/60 pt-8">
-            {user ? (
+          <motion.aside
+            id="mobile-nav-panel"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Menu de navigation"
+            className="fixed left-0 top-0 z-[56] flex h-full w-[min(88vw,320px)] flex-col border-r border-nude/70 bg-cream shadow-[4px_0_32px_rgba(42,31,26,0.12)] md:hidden"
+            initial={{ x: '-100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '-100%' }}
+            transition={panelTransition}
+          >
+            {/* Header */}
+            <div className="flex h-[72px] shrink-0 items-center justify-between border-b border-nude/50 px-5">
               <Link
-                to="/compte"
+                to="/"
                 onClick={onClose}
-                className="flex items-center gap-3 px-4 py-3"
+                className="font-cormorant text-[26px] italic text-ink transition-opacity hover:opacity-75"
               >
-                <span className="grid h-8 w-8 place-items-center rounded-full bg-nude font-josefin text-[9px] text-bark border border-nude">{`${user.firstName?.[0] || ''}${user.lastName?.[0] || ''}`.toUpperCase() || 'AD'}</span>
-                <span className="font-josefin text-[10px] uppercase tracking-[0.2em] text-stone">Mon compte</span>
+                Aurya
               </Link>
-            ) : (
-              <>
+              <button
+                type="button"
+                aria-label="Fermer le menu"
+                onClick={onClose}
+                className="grid h-10 w-10 place-items-center rounded-full text-stone transition-colors hover:bg-nude/60 hover:text-ink"
+              >
+                <FiX size={20} />
+              </button>
+            </div>
+
+            {/* Navigation */}
+            <nav className="flex-1 overflow-y-auto px-4 py-6">
+              <ul className="flex flex-col gap-1">
+                {links.map((l) => (
+                  <li key={l.to}>
+                    <NavLink
+                      to={l.to}
+                      end={l.end}
+                      onClick={onClose}
+                      className={({ isActive }) =>
+                        `flex items-center gap-4 rounded-card px-4 py-4 transition-colors ${
+                          isActive
+                            ? 'border-l-2 border-bark bg-bark/[0.06] pl-[14px] text-bark'
+                            : 'border-l-2 border-transparent text-stone hover:bg-nude/35 hover:text-ink'
+                        }`
+                      }
+                    >
+                      {({ isActive }) => (
+                        <>
+                          <l.Icon size={18} className={isActive ? 'text-bark' : 'text-stone/55'} />
+                          <span className="font-josefin text-[11px] uppercase tracking-[0.2em]">
+                            {l.label}
+                          </span>
+                        </>
+                      )}
+                    </NavLink>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+
+            {/* Auth footer */}
+            <div className="shrink-0 border-t border-nude/60 px-5 py-6">
+              {user ? (
                 <Link
-                  to="/connexion"
+                  to="/compte"
                   onClick={onClose}
-                  className="flex items-center justify-center gap-2 border border-bark/30 py-3 font-josefin text-[9px] uppercase tracking-[0.22em] text-bark transition-colors hover:bg-bark hover:text-cream"
+                  className="flex items-center gap-3 rounded-card px-3 py-3 transition-colors hover:bg-nude/40"
                 >
-                  <FiUser size={13} /> Connexion
+                  <span className="grid h-9 w-9 place-items-center rounded-full border border-nude bg-nude font-josefin text-[9px] text-bark">
+                    {`${user.firstName?.[0] || ''}${user.lastName?.[0] || ''}`.toUpperCase() || 'AD'}
+                  </span>
+                  <span className="font-josefin text-[10px] uppercase tracking-[0.2em] text-stone">
+                    Mon compte
+                  </span>
                 </Link>
-                <Link
-                  to="/inscription"
-                  onClick={onClose}
-                  className="flex items-center justify-center bg-bark py-3 font-josefin text-[9px] uppercase tracking-[0.2em] text-cream transition-colors hover:bg-bark-light"
-                >
-                  S&apos;inscrire
-                </Link>
-              </>
-            )}
-          </div>
-        </div>
-      </motion.div>
-    </>
+              ) : (
+                <div className="flex flex-col gap-2.5">
+                  <Link
+                    to="/connexion"
+                    onClick={onClose}
+                    className="flex items-center justify-center gap-2 border border-bark/30 py-3.5 font-josefin text-[9px] uppercase tracking-[0.22em] text-bark transition-colors hover:bg-bark hover:text-cream"
+                  >
+                    <FiUser size={14} />
+                    Connexion
+                  </Link>
+                  <Link
+                    to="/inscription"
+                    onClick={onClose}
+                    className="flex items-center justify-center bg-bark py-3.5 font-josefin text-[9px] uppercase tracking-[0.22em] text-cream transition-colors hover:bg-bark-light"
+                  >
+                    S&apos;inscrire
+                  </Link>
+                </div>
+              )}
+            </div>
+          </motion.aside>
+        </>
+      )}
+    </AnimatePresence>
   )
 }
