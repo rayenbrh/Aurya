@@ -7,7 +7,7 @@ import SectionReveal from '../components/ui/SectionReveal'
 
 const contactInfo = [
   { Icon: FiMapPin,  label: 'Adresse',    value: 'Tunis, Tunisie' },
-  { Icon: FiPhone,   label: 'Téléphone',  value: '+216 XX XXX XXX' },
+  { Icon: FiPhone,   label: 'Téléphone',  value: '+216 93 091 290', href: 'tel:+21693091290' },
   { Icon: FiMail,    label: 'Email',      value: 'contact@auryadeco.tn' },
 ]
 
@@ -61,7 +61,7 @@ export default function Contact() {
               </p>
 
               <div className="mt-10 space-y-7">
-                {contactInfo.map(({ Icon, label, value }) => (
+                {contactInfo.map(({ Icon, label, value, href }) => (
                   <motion.div
                     key={label}
                     className="flex items-start gap-4"
@@ -73,14 +73,18 @@ export default function Contact() {
                     </div>
                     <div>
                       <p className="font-josefin text-[8px] uppercase tracking-[0.2em] text-nude/50">{label}</p>
-                      <p className="mt-0.5 text-[13px] text-nude/85">{value}</p>
+                      {href ? (
+                        <a href={href} className="mt-0.5 block text-[13px] text-nude/85 hover:text-cream transition-colors">{value}</a>
+                      ) : (
+                        <p className="mt-0.5 text-[13px] text-nude/85">{value}</p>
+                      )}
                     </div>
                   </motion.div>
                 ))}
               </div>
 
               <a
-                href="https://wa.me/21600000000"
+                href="https://wa.me/21693091290"
                 className="mt-10 inline-flex items-center gap-2 bg-cream px-6 py-3 font-josefin text-[9px] uppercase tracking-[0.22em] text-bark transition-colors hover:bg-nude"
               >
                 WhatsApp <FiArrowRight size={12} />

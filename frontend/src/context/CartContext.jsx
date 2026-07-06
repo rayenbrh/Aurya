@@ -10,6 +10,10 @@ export const useCart = () => {
   return ctx
 }
 
+function cartKey(productId, variant) {
+  return variant ? `${productId}__${variant.name}` : `${productId}__`
+}
+
 export const CartProvider = ({ children }) => {
   const [items, setItems] = useState([])
 
@@ -17,7 +21,14 @@ export const CartProvider = ({ children }) => {
     const raw = localStorage.getItem('aurya-cart')
     if (raw) {
       try {
-        setItems(JSON.parse(raw))
+        const parsed = JSON.parse(raw)
+        // Migrate old cart items that don't have _key
+        const migrated = parsed.map((item) => ({
+          ...item,
+          _key: item._key || `${item.product?.id || item.product?._id}__`,
+          variant: item.variant || null,
+        }))
+        setItems(migrated)
       } catch {
         localStorage.removeItem('aurya-cart')
       }
@@ -28,25 +39,36 @@ export const CartProvider = ({ children }) => {
     localStorage.setItem('aurya-cart', JSON.stringify(items))
   }, [items])
 
-  const addToCart = (product) => {
+  const addToCart = (product, variant = null) => {
+    const key = cartKey(product.id, variant)
     setItems((prev) => {
-      const found = prev.find((i) => i.product.id === product.id)
-      if (found) return prev.map((i) => (i.product.id === product.id ? { ...i, quantity: i.quantity + 1 } : i))
-      return [...prev, { product, quantity: 1 }]
+      const found = prev.find((i) => i._key === key)
+      if (found) return prev.map((i) => i._key === key ? { ...i, quantity: i.quantity + 1 } : i)
+      return [...prev, { _key: key, product, quantity: 1, variant: variant || null }]
     })
-    toast.success('Ajouté au panier')
+    toast.success(variant ? `${variant.name} ajouté au panier` : 'Ajouté au panier')
   }
 
-  const removeFromCart = (id) => setItems((prev) => prev.filter((i) => i.product.id !== id))
-  const updateQty = (id, qty) =>
+  const removeFromCart = (key) => setItems((prev) => prev.filter((i) => i._key !== key))
+
+  const updateQty = (key, qty) =>
     setItems((prev) =>
-      qty <= 0 ? prev.filter((i) => i.product.id !== id) : prev.map((i) => (i.product.id === id ? { ...i, quantity: qty } : i)),
+      qty <= 0
+        ? prev.filter((i) => i._key !== key)
+        : prev.map((i) => (i._key === key ? { ...i, quantity: qty } : i)),
     )
+
   const clearCart = () => setItems([])
+
   const isInCart = (id) => items.some((i) => i.product.id === id)
 
+  const getItemPrice = (item) => item.variant?.price ?? item.product.price
+
   const totalItems = useMemo(() => items.reduce((acc, i) => acc + i.quantity, 0), [items])
-  const totalPrice = useMemo(() => formatPrice(items.reduce((acc, i) => acc + i.quantity * i.product.price, 0)), [items])
+  const totalPrice = useMemo(
+    () => formatPrice(items.reduce((acc, i) => acc + i.quantity * getItemPrice(i), 0)),
+    [items],
+  )
 
   const value = useMemo(
     () => ({
@@ -58,6 +80,7 @@ export const CartProvider = ({ children }) => {
       totalItems,
       totalPrice,
       isInCart,
+      getItemPrice,
     }),
     [items, totalItems, totalPrice],
   )

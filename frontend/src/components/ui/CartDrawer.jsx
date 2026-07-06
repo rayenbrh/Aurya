@@ -7,7 +7,7 @@ import { formatPrice } from '../../data/products'
 import { useCart } from '../../context/CartContext'
 
 export default function CartDrawer({ open, onClose }) {
-  const { items, totalItems, totalPrice, updateQty, removeFromCart } = useCart()
+  const { items, totalItems, totalPrice, updateQty, removeFromCart, getItemPrice } = useCart()
 
   useEffect(() => {
     if (!open) return undefined
@@ -30,7 +30,7 @@ export default function CartDrawer({ open, onClose }) {
             onClick={onClose}
           />
 
-          {/* Panel container — must be above backdrop */}
+          {/* Panel container */}
           <div className="fixed inset-0 z-[550] flex justify-end">
             <DialogPanel
               as={motion.aside}
@@ -75,16 +75,19 @@ export default function CartDrawer({ open, onClose }) {
                     </Link>
                   </div>
                 ) : (
-                  items.map(({ product, quantity }) => {
+                  items.map((item) => {
+                    const { product, quantity, variant, _key } = item
                     const catLabel = product.categoryName || product.category || ''
+                    const displayImg = variant?.photo || product.imageUrl
+                    const itemPrice = getItemPrice(item)
                     return (
-                      <div key={product.id} className="flex gap-4 border-b border-nude/50 px-6 py-5">
+                      <div key={_key} className="flex gap-4 border-b border-nude/50 px-6 py-5">
                         <div
                           className="h-[72px] w-[72px] shrink-0 overflow-hidden rounded-card border border-nude/70"
                           style={{ backgroundColor: product.bgColor || '#EDE8E0' }}
                         >
-                          {product.imageUrl && (
-                            <img src={product.imageUrl} alt="" className="h-full w-full object-cover" />
+                          {displayImg && (
+                            <img src={displayImg} alt="" className="h-full w-full object-cover" />
                           )}
                         </div>
                         <div className="min-w-0 flex-1">
@@ -92,24 +95,27 @@ export default function CartDrawer({ open, onClose }) {
                             <div>
                               <p className="font-josefin text-[8px] uppercase tracking-[0.18em] text-stone/55">{catLabel}</p>
                               <p className="mt-0.5 font-cormorant text-[16px] font-light text-ink leading-snug">{product.name}</p>
+                              {variant && (
+                                <p className="mt-0.5 font-josefin text-[8px] text-bark/70">{variant.title} : {variant.name}</p>
+                              )}
                             </div>
                             <button
                               type="button"
                               aria-label="Supprimer"
-                              onClick={() => removeFromCart(product.id)}
+                              onClick={() => removeFromCart(_key)}
                               className="mt-0.5 text-stone/40 transition-colors hover:text-bark"
                             >
                               <FiTrash2 size={13} />
                             </button>
                           </div>
                           <div className="mt-2 flex items-center justify-between">
-                            <p className="font-cormorant text-[18px] font-light text-olive">{formatPrice(product.price)}</p>
+                            <p className="font-josefin text-[15px] font-medium tabular-nums text-olive">{formatPrice(itemPrice)}</p>
                             <div className="inline-flex items-center overflow-hidden rounded-card border border-nude/80">
                               <button
                                 type="button"
                                 aria-label="Diminuer"
                                 className="px-2.5 py-1.5 text-stone transition-colors hover:bg-parchment hover:text-bark"
-                                onClick={() => updateQty(product.id, quantity - 1)}
+                                onClick={() => updateQty(_key, quantity - 1)}
                               >
                                 <FiMinus size={11} />
                               </button>
@@ -118,7 +124,7 @@ export default function CartDrawer({ open, onClose }) {
                                 type="button"
                                 aria-label="Augmenter"
                                 className="px-2.5 py-1.5 text-stone transition-colors hover:bg-parchment hover:text-bark"
-                                onClick={() => updateQty(product.id, quantity + 1)}
+                                onClick={() => updateQty(_key, quantity + 1)}
                               >
                                 <FiPlus size={11} />
                               </button>
@@ -136,7 +142,7 @@ export default function CartDrawer({ open, onClose }) {
                 <footer className="border-t border-nude/60 bg-parchment px-6 py-6">
                   <div className="mb-4 flex items-center justify-between">
                     <span className="font-josefin text-[9px] uppercase tracking-[0.2em] text-stone">Sous-total</span>
-                    <span className="font-cormorant text-[26px] font-light text-olive">{totalPrice}</span>
+                    <span className="font-josefin text-[22px] font-medium tabular-nums text-olive">{totalPrice}</span>
                   </div>
                   <Link
                     to="/commande"

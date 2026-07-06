@@ -14,6 +14,7 @@ import productRoutes from './routes/products.routes.js'
 import orderRoutes from './routes/orders.routes.js'
 import adminRoutes from './routes/admin.routes.js'
 import settingsRoutes from './routes/settings.routes.js'
+import reviewRoutes from './routes/reviews.routes.js'
 import { errorHandler } from './middleware/errorHandler.middleware.js'
 import { generalLimiter, strictLimiter } from './middleware/rateLimiter.middleware.js'
 
@@ -47,6 +48,7 @@ app.use('/api/products', productRoutes)
 app.use('/api/orders', orderRoutes)
 app.use('/api/admin', adminRoutes)
 app.use('/api/settings', settingsRoutes)
+app.use('/api/reviews', reviewRoutes)
 
 app.get('/api/health', (_req, res) => {
   res.json({ success: true, data: { status: 'ok', timestamp: new Date().toISOString(), env: env.NODE_ENV }, message: 'API OK' })

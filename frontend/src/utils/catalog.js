@@ -56,6 +56,10 @@ export function normalizeProduct(p) {
     rating: p.rating ?? 0,
     reviews: p.reviewCount ?? p.reviews ?? 0,
     stock: p.stock,
+    variants: (p.variants || []).map((v) => ({
+      ...v,
+      photo: resolveImageUrl(v.photo),
+    })),
   }
 }
 

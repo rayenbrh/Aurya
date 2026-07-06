@@ -17,6 +17,31 @@ export const getAdminProducts = async (req, res) => {
   res.json({ success: true, data: serializeProducts(products, req), message: 'Produits admin' })
 }
 
+function parseVariantsFromRequest(req) {
+  const raw = req.body?.variants
+  if (!raw) return []
+  try {
+    const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw
+    return Array.isArray(parsed) ? parsed : []
+  } catch {
+    return []
+  }
+}
+
+function attachVariantPhotos(variants, files) {
+  const variantFiles = (files || []).filter((f) => f.fieldname?.startsWith('variantPhoto_'))
+  return variants.map((v, i) => {
+    const file = variantFiles.find((f) => f.fieldname === `variantPhoto_${i}`)
+    return {
+      title: String(v.title || '').trim(),
+      name: String(v.name || '').trim(),
+      price: Number(v.price) || 0,
+      stock: Number(v.stock) || 0,
+      photo: file ? toPublicUploadUrl(file.path) : (v.photo || ''),
+    }
+  })
+}
+
 export const createAdminProduct = async (req, res) => {
   const body = parseProductBody(req.body)
   if (!body.category) {
@@ -26,7 +51,10 @@ export const createAdminProduct = async (req, res) => {
     return res.status(400).json({ success: false, message: 'La description est obligatoire' })
   }
   const files = req.files || []
-  body.images = files.map((f) => toPublicUploadUrl(f.path))
+  const imageFiles = files.filter((f) => f.fieldname === 'images')
+  body.images = imageFiles.map((f) => toPublicUploadUrl(f.path))
+  const variants = parseVariantsFromRequest(req)
+  body.variants = attachVariantPhotos(variants, files)
   const product = await Product.create(body)
   res.status(201).json({ success: true, data: serializeProduct(product, req), message: 'Produit créé' })
 }
@@ -34,8 +62,9 @@ export const createAdminProduct = async (req, res) => {
 export const updateAdminProduct = async (req, res) => {
   const product = await Product.findById(req.params.id)
   if (!product) return res.status(404).json({ success: false, message: 'Produit introuvable' })
+  const allFiles = req.files || []
   const body = parseProductBody(req.body)
-  const newImages = (req.files || []).map((f) => toPublicUploadUrl(f.path))
+  const newImages = allFiles.filter((f) => f.fieldname === 'images').map((f) => toPublicUploadUrl(f.path))
   const expectsFiles = req.body?.hasNewImages === 'true' || req.body?.hasNewImages === true
   if (expectsFiles && newImages.length === 0) {
     return res.status(400).json({
@@ -78,6 +107,12 @@ export const updateAdminProduct = async (req, res) => {
   await Promise.all(removed.map((img) => deleteLocalUpload(img)))
 
   body.images = finalImages
+
+  const variants = parseVariantsFromRequest(req)
+  if (req.body?.variants !== undefined) {
+    body.variants = attachVariantPhotos(variants, allFiles)
+  }
+
   const updated = await Product.findByIdAndUpdate(req.params.id, { $set: body }, { new: true, runValidators: true })
   res.json({ success: true, data: serializeProduct(updated, req), message: 'Produit mis à jour' })
 }

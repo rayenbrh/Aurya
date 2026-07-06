@@ -42,6 +42,12 @@ export function serializeProduct(product, req) {
   if (Array.isArray(doc.images)) {
     doc.images = doc.images.map((img) => toAbsoluteMediaUrl(toStoredMediaPath(img), req))
   }
+  if (Array.isArray(doc.variants)) {
+    doc.variants = doc.variants.map((v) => ({
+      ...v,
+      photo: v.photo ? toAbsoluteMediaUrl(toStoredMediaPath(v.photo), req) : '',
+    }))
+  }
   return doc
 }
 

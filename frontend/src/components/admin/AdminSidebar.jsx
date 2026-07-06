@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { NavLink, useLocation, useNavigate } from 'react-router-dom'
-import { FiGrid, FiPackage, FiBox, FiTag, FiSettings, FiBarChart2, FiUsers, FiX, FiLogOut } from 'react-icons/fi'
+import { FiGrid, FiPackage, FiBox, FiTag, FiSettings, FiBarChart2, FiUsers, FiX, FiLogOut, FiMessageSquare, FiPhone } from 'react-icons/fi'
 import { useAuth } from '../../context/AuthContext'
 import { useAdminUI } from '../../context/AdminUIContext'
 import useMediaQuery from '../../hooks/useMediaQuery'
@@ -19,6 +19,7 @@ const sections = [
     label: 'Contenu',
     items: [
       { to: '/admin/settings', label: 'Paramètres', Icon: FiSettings },
+      { to: '/admin/reviews', label: 'Avis clients', Icon: FiMessageSquare },
     ],
   },
   {
@@ -97,9 +98,15 @@ const AdminSidebar = ({ pendingCount = 0 }) => {
       <div className="border-t border-cream/[0.07] px-5 py-4">
         <p className="font-josefin text-[9px] uppercase tracking-[0.14em] text-cream/80">{user?.firstName} {user?.lastName}</p>
         <p className="mt-0.5 font-josefin text-[8px] text-cream/35">{user?.email}</p>
+        <a
+          href="tel:+21693091290"
+          className="mt-3 flex items-center gap-1.5 font-josefin text-[8px] text-nude/50 hover:text-nude/80 transition-colors"
+        >
+          <FiPhone size={10} /> +216 93 091 290
+        </a>
         <button
           onClick={async () => { await logout(); navigate('/admin/login') }}
-          className="mt-3 flex items-center gap-1.5 font-josefin text-[8px] uppercase tracking-[0.18em] text-bark transition-colors hover:text-bark-light"
+          className="mt-2 flex items-center gap-1.5 font-josefin text-[8px] uppercase tracking-[0.18em] text-bark transition-colors hover:text-bark-light"
         >
           <FiLogOut size={11} /> Se déconnecter
         </button>

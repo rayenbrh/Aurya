@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
+import { FiPhone } from 'react-icons/fi'
 import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
 import { formatPrice } from '../data/products'
@@ -68,9 +69,10 @@ export default function Checkout() {
     setSaving(true)
     try {
       const { data } = await ordersService.createOrder({
-        items: items.map(({ product, quantity }) => ({
+        items: items.map(({ product, quantity, variant }) => ({
           productId: product._id || product.id,
           quantity,
+          variant: variant ? { title: variant.title, name: variant.name } : undefined,
         })),
         customer: {
           fullName,
@@ -100,7 +102,8 @@ export default function Checkout() {
     }
   }
 
-  const subtotal = items.reduce((acc, i) => acc + i.quantity * i.product.price, 0)
+  const getPrice = (item) => item.variant?.price ?? item.product.price
+  const subtotal = items.reduce((acc, i) => acc + i.quantity * getPrice(i), 0)
 
   return (
     <main className="bg-cream px-5 pb-24 pt-[88px] md:px-16 md:pt-[100px]">
@@ -110,6 +113,12 @@ export default function Checkout() {
         <p className="mt-2 font-josefin text-[9px] uppercase tracking-[0.2em] text-stone/55">
           Paiement à la livraison · Sans compte requis
         </p>
+        <a
+          href="tel:+21693091290"
+          className="mt-3 inline-flex items-center gap-2 rounded-card border border-bark/20 bg-bark/5 px-4 py-2.5 font-josefin text-[10px] text-bark transition-colors hover:bg-bark/10"
+        >
+          <FiPhone size={12} /> Besoin d'aide ? +216 93 091 290
+        </a>
 
         <form onSubmit={submit} className="mt-10 grid gap-10 lg:grid-cols-[1fr_380px]">
           <div className="border border-nude/60 bg-cream p-6 md:p-8">
@@ -161,15 +170,19 @@ export default function Checkout() {
           <aside className="h-fit border border-nude/60 bg-parchment p-6">
             <p className="mb-4 font-josefin text-[9px] uppercase tracking-[0.2em] text-stone/50">Récapitulatif</p>
             <div className="max-h-[280px] space-y-3 overflow-y-auto">
-              {items.map(({ product, quantity }) => (
-                <div key={product.id} className="flex justify-between gap-3 border-b border-nude/40 pb-3">
-                  <div>
-                    <p className="font-josefin text-[9px] text-ink">{product.name}</p>
-                    <p className="font-josefin text-[8px] text-stone/50">× {quantity}</p>
+              {items.map((item) => {
+                const { product, quantity, variant, _key } = item
+                return (
+                  <div key={_key} className="flex justify-between gap-3 border-b border-nude/40 pb-3">
+                    <div>
+                      <p className="font-josefin text-[9px] text-ink">{product.name}</p>
+                      {variant && <p className="font-josefin text-[8px] text-bark/60">{variant.title} : {variant.name}</p>}
+                      <p className="font-josefin text-[8px] text-stone/50">× {quantity}</p>
+                    </div>
+                    <p className="font-josefin text-[15px] font-medium tabular-nums text-bark">{formatPrice(getPrice(item) * quantity)}</p>
                   </div>
-                  <p className="font-cormorant text-lg text-bark">{formatPrice(product.price * quantity)}</p>
-                </div>
-              ))}
+                )
+              })}
             </div>
             <div className="mt-4 flex justify-between border-t border-nude/60 pt-4">
               <span className="font-josefin text-[9px] uppercase tracking-[0.15em] text-stone/60">Total</span>

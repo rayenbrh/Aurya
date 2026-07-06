@@ -28,4 +28,8 @@ export const adminService = {
   updateMarquee: (payload) => api.patch('/admin/settings/marquee', payload),
   updateContact: (payload) => api.patch('/admin/settings/contact', payload),
   updateSEO: (payload) => api.patch('/admin/settings/seo', payload),
+  getReviews: () => api.get('/admin/reviews'),
+  createReview: (payload) => api.post('/admin/reviews', payload),
+  approveReview: (id) => api.patch(`/admin/reviews/${id}/approve`),
+  deleteReview: (id) => api.delete(`/admin/reviews/${id}`),
 }

@@ -1,15 +1,15 @@
-import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useEffect, useRef, useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
-import { FiArrowRight, FiShoppingBag } from 'react-icons/fi'
+import { FiArrowRight, FiShoppingBag, FiStar, FiChevronLeft, FiChevronRight } from 'react-icons/fi'
 import { settingsService } from '../services/settings.service'
 import { productsService } from '../services/products.service'
 import { normalizeCategory, normalizeProduct, resolveImageUrl } from '../utils/catalog'
 import SectionReveal from '../components/ui/SectionReveal'
 import CategoryCard from '../components/ui/CategoryCard'
 import ProductCard from '../components/ui/ProductCard'
-import ProductModal from '../components/ui/ProductModal'
 import { useCart } from '../context/CartContext'
+import api from '../services/api'
 
 const defaultHero = {
   imageUrl: '',
@@ -29,21 +29,179 @@ function WarmCorner({ pos }) {
       aria-hidden
     >
       {isRight ? (
-        <>
-          <path d="M44 44 L44 20 M44 44 L20 44" stroke="rgba(123,79,58,0.35)" strokeWidth="1.2"
-            strokeDasharray="60" strokeDashoffset="60">
-            <animate attributeName="stroke-dashoffset" from="60" to="0" dur="1.1s" fill="freeze" begin="0.6s" />
-          </path>
-        </>
+        <path d="M44 44 L44 20 M44 44 L20 44" stroke="rgba(123,79,58,0.35)" strokeWidth="1.2"
+          strokeDasharray="60" strokeDashoffset="60">
+          <animate attributeName="stroke-dashoffset" from="60" to="0" dur="1.1s" fill="freeze" begin="0.6s" />
+        </path>
       ) : (
-        <>
-          <path d="M0 0 L0 24 M0 0 L24 0" stroke="rgba(123,79,58,0.35)" strokeWidth="1.2"
-            strokeDasharray="60" strokeDashoffset="60">
-            <animate attributeName="stroke-dashoffset" from="60" to="0" dur="1.1s" fill="freeze" begin="0.4s" />
-          </path>
-        </>
+        <path d="M0 0 L0 24 M0 0 L24 0" stroke="rgba(123,79,58,0.35)" strokeWidth="1.2"
+          strokeDasharray="60" strokeDashoffset="60">
+          <animate attributeName="stroke-dashoffset" from="60" to="0" dur="1.1s" fill="freeze" begin="0.4s" />
+        </path>
       )}
     </svg>
+  )
+}
+
+function StarRating({ rating = 5, size = 13 }) {
+  return (
+    <div className="flex items-center gap-0.5">
+      {[1, 2, 3, 4, 5].map((s) => (
+        <FiStar
+          key={s}
+          size={size}
+          className={s <= Math.round(rating) ? 'fill-olive stroke-olive' : 'stroke-stone/30'}
+        />
+      ))}
+    </div>
+  )
+}
+
+function BestSellersCarousel({ products, onAdd }) {
+  const navigate = useNavigate()
+  const reduce = useReducedMotion()
+  const trackRef = useRef(null)
+  const [idx, setIdx] = useState(0)
+  const [isPaused, setIsPaused] = useState(false)
+
+  const total = products.length
+  const go = (newIdx) => {
+    const el = trackRef.current
+    if (!el) return
+    const bounded = ((newIdx % total) + total) % total
+    const item = el.children[bounded]
+    if (item) el.scrollTo({ left: item.offsetLeft, behavior: 'smooth' })
+    setIdx(bounded)
+  }
+
+  useEffect(() => {
+    if (isPaused || total === 0) return
+    const t = setInterval(() => go(idx + 1), 3500)
+    return () => clearInterval(t)
+  }, [idx, isPaused, total])
+
+  if (!products.length) return null
+
+  return (
+    <div
+      className="relative"
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+    >
+      {/* Scroll track */}
+      <div
+        ref={trackRef}
+        className="flex gap-4 overflow-x-auto scroll-smooth pb-2"
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+      >
+        {products.map((p, i) => (
+          <div
+            key={p.id}
+            className="flex-shrink-0 w-[72vw] md:w-[calc(25%-12px)] snap-start"
+          >
+            <ProductCard product={p} index={i} onAdd={onAdd} />
+          </div>
+        ))}
+      </div>
+
+      {/* Navigation arrows — desktop */}
+      <button
+        onClick={() => go(idx - 1)}
+        className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 -translate-x-5 h-10 w-10 items-center justify-center rounded-full bg-cream border border-nude/60 shadow-soft text-stone hover:text-bark transition-colors z-10"
+        aria-label="Précédent"
+      >
+        <FiChevronLeft size={18} />
+      </button>
+      <button
+        onClick={() => go(idx + 1)}
+        className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 translate-x-5 h-10 w-10 items-center justify-center rounded-full bg-cream border border-nude/60 shadow-soft text-stone hover:text-bark transition-colors z-10"
+        aria-label="Suivant"
+      >
+        <FiChevronRight size={18} />
+      </button>
+
+      {/* Dots */}
+      <div className="mt-5 flex justify-center gap-2">
+        {products.map((_, i) => (
+          <button
+            key={i}
+            onClick={() => go(i)}
+            className={`h-1.5 rounded-pill transition-all ${i === idx ? 'w-6 bg-bark' : 'w-1.5 bg-nude/60'}`}
+            aria-label={`Slide ${i + 1}`}
+          />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function AvisSection({ reviews }) {
+  const reduce = useReducedMotion()
+  if (!reviews.length) return null
+
+  return (
+    <section className="bg-parchment px-5 py-20 md:px-16 md:py-28 overflow-hidden">
+      <SectionReveal>
+        <div className="mx-auto flex max-w-[1280px] flex-wrap items-end justify-between gap-4 mb-12">
+          <div>
+            <p className="eyebrow mb-3">Témoignages</p>
+            <h2
+              className="font-cormorant font-light text-ink"
+              style={{ fontSize: 'clamp(32px, 4vw, 52px)' }}
+            >
+              Ce que disent nos <em className="italic text-bark">clients</em>
+            </h2>
+          </div>
+        </div>
+      </SectionReveal>
+
+      <div className="mx-auto max-w-[1280px] grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {reviews.map((review, i) => {
+          const productImg = review.product?.images?.[0] || ''
+          return (
+            <motion.div
+              key={review._id}
+              initial={reduce ? false : { opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-40px' }}
+              transition={{ duration: 0.55, delay: i * 0.1 }}
+              className="relative overflow-hidden rounded-card-lg min-h-[220px] flex flex-col justify-end"
+            >
+              {/* Blurred product photo background */}
+              {productImg && (
+                <>
+                  <div
+                    className="absolute inset-0 scale-110"
+                    style={{
+                      backgroundImage: `url(${productImg})`,
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center',
+                      filter: 'blur(12px)',
+                    }}
+                  />
+                  <div className="absolute inset-0 bg-ink/55" />
+                </>
+              )}
+              {!productImg && <div className="absolute inset-0 bg-sage-dark" />}
+
+              {/* Content */}
+              <div className="relative z-10 p-6">
+                <StarRating rating={review.rating} />
+                <p className="mt-3 text-[14px] leading-7 text-cream/90 italic line-clamp-4">
+                  "{review.comment}"
+                </p>
+                <p className="mt-4 font-josefin text-[9px] uppercase tracking-[0.22em] text-nude/60">
+                  — {review.authorName}
+                </p>
+                {review.product?.name && (
+                  <p className="mt-1 font-josefin text-[8px] text-nude/40">{review.product.name}</p>
+                )}
+              </div>
+            </motion.div>
+          )
+        })}
+      </div>
+    </section>
   )
 }
 
@@ -51,9 +209,9 @@ export default function Home() {
   const reduce = useReducedMotion()
   const { addToCart } = useCart()
   const [hero, setHero] = useState(defaultHero)
-  const [modalProduct, setModalProduct] = useState(null)
   const [categories, setCategories] = useState([])
   const [best, setBest] = useState([])
+  const [reviews, setReviews] = useState([])
 
   useEffect(() => {
     settingsService.getSettings().then((s) => {
@@ -84,6 +242,10 @@ export default function Home() {
       }
     }
     loadBest()
+  }, [])
+
+  useEffect(() => {
+    api.get('/reviews').then(({ data }) => setReviews(data.data || [])).catch(() => {})
   }, [])
 
   const headlineWords = `${hero.headlineTop} ${hero.headlineItalic} ${hero.headlineBottom}`.trim().split(' ')
@@ -155,12 +317,11 @@ export default function Home() {
           </motion.div>
         </div>
 
-        {/* Right — admin image panel */}
+        {/* Right — hero image */}
         <div
           className="relative order-1 md:order-2 min-h-[340px] overflow-hidden"
           style={{ background: '#D4C4B5' }}
         >
-          {/* Dot pattern */}
           <div
             className="absolute inset-0 pointer-events-none"
             style={{
@@ -168,8 +329,6 @@ export default function Home() {
               backgroundSize: '22px 22px',
             }}
           />
-
-          {/* Inner frame */}
           <div
             className="absolute inset-[6%] overflow-hidden"
             style={{
@@ -196,12 +355,8 @@ export default function Home() {
               </div>
             )}
           </div>
-
-          {/* Corner accents */}
           <WarmCorner pos="tl" />
           <WarmCorner pos="br" />
-
-          {/* Price tag — top */}
           <motion.div
             initial={reduce ? false : { opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -210,11 +365,9 @@ export default function Home() {
           >
             <div className="rounded-card bg-cream/90 px-4 py-2 shadow-float backdrop-blur-sm">
               <p className="font-josefin text-[7px] uppercase tracking-[0.22em] text-stone">Nouvelle pièce</p>
-              <p className="mt-0.5 font-cormorant text-[18px] font-light text-bark">À partir de 890 TND</p>
+              <p className="mt-0.5 font-josefin text-[15px] font-medium tabular-nums text-bark">À partir de 890 TND</p>
             </div>
           </motion.div>
-
-          {/* Price tag — bottom */}
           <motion.div
             initial={reduce ? false : { opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -244,8 +397,31 @@ export default function Home() {
         </div>
       </div>
 
-      {/* ── Collections ──────────────────────────────────────── */}
+      {/* ── Best Sellers Carousel ────────────────────────────── */}
       <section className="bg-cream px-5 py-20 md:px-16 md:py-28">
+        <SectionReveal>
+          <div className="mx-auto flex max-w-[1280px] flex-wrap items-end justify-between gap-4 mb-12">
+            <div>
+              <p className="eyebrow mb-3">Sélection</p>
+              <h2
+                className="font-cormorant font-light text-ink"
+                style={{ fontSize: 'clamp(32px, 4vw, 52px)' }}
+              >
+                Nos best <em className="italic text-bark">sellers</em>
+              </h2>
+            </div>
+            <Link to="/collections" className="font-josefin text-[9px] uppercase tracking-[0.22em] text-bark hover:text-ink transition-colors flex items-center gap-1">
+              Voir tout <FiArrowRight size={11} />
+            </Link>
+          </div>
+        </SectionReveal>
+        <div className="mx-auto max-w-[1280px]">
+          <BestSellersCarousel products={best} onAdd={addToCart} />
+        </div>
+      </section>
+
+      {/* ── Categories ───────────────────────────────────────── */}
+      <section className="bg-parchment px-5 py-20 md:px-16 md:py-28">
         <SectionReveal>
           <div className="mx-auto flex max-w-[1280px] flex-wrap items-end justify-between gap-4 mb-12">
             <div>
@@ -277,36 +453,12 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── Best Sellers ─────────────────────────────────────── */}
-      <section className="bg-parchment px-5 py-20 md:px-16 md:py-28">
-        <SectionReveal>
-          <div className="mx-auto flex max-w-[1280px] flex-wrap items-end justify-between gap-6 mb-12">
-            <div>
-              <p className="eyebrow mb-3">Sélection</p>
-              <h2
-                className="font-cormorant font-light text-ink"
-                style={{ fontSize: 'clamp(32px, 4vw, 52px)' }}
-              >
-                Nos best <em className="italic text-bark">sellers</em>
-              </h2>
-            </div>
-            <Link to="/collections" className="font-josefin text-[9px] uppercase tracking-[0.22em] text-bark hover:text-ink transition-colors flex items-center gap-1">
-              Voir tout <FiArrowRight size={11} />
-            </Link>
-          </div>
-        </SectionReveal>
-
-        <div className="mx-auto max-w-[1280px] grid grid-cols-2 gap-5 lg:grid-cols-4">
-          {best.map((p, i) => (
-            <ProductCard key={p.id} product={p} index={i} onOpen={setModalProduct} onAdd={addToCart} />
-          ))}
-        </div>
-      </section>
+      {/* ── Avis clients ─────────────────────────────────────── */}
+      <AvisSection reviews={reviews} />
 
       {/* ── Brand Story ──────────────────────────────────────── */}
       <section className="px-5 py-16 md:px-16 md:py-24">
         <div className="mx-auto grid max-w-[1320px] overflow-hidden rounded-card-lg md:grid-cols-[40%_60%]">
-          {/* Left stat cards */}
           <div className="relative min-h-[280px] bg-parchment p-8 md:p-12 flex flex-col justify-between">
             <svg className="absolute inset-0 h-full w-full opacity-[0.08]" aria-hidden>
               <defs>
@@ -332,8 +484,6 @@ export default function Home() {
               ))}
             </div>
           </div>
-
-          {/* Right dark panel */}
           <div className="flex flex-col justify-center bg-sage-dark px-8 py-14 md:px-14 md:py-16">
             <p className="font-josefin text-[8px] uppercase tracking-[0.34em] text-nude/60 mb-4">L&apos;essence d&apos;Aurya</p>
             <h3
@@ -381,8 +531,6 @@ export default function Home() {
           ))}
         </div>
       </section>
-
-      <ProductModal product={modalProduct} open={Boolean(modalProduct)} onClose={() => setModalProduct(null)} onAdd={addToCart} />
     </>
   )
 }

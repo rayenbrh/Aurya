@@ -15,10 +15,16 @@ import {
   deleteProduct,
   toggleProduct,
   updateAdminProduct,
-  updateCategory,
   updateOrderNotes,
   updateOrderStatus,
+  updateCategory,
 } from '../controllers/admin.controller.js'
+import {
+  getAdminReviews,
+  approveReview,
+  deleteReview,
+  createAdminReview,
+} from '../controllers/reviews.controller.js'
 import { adminOnly } from '../middleware/adminOnly.middleware.js'
 import {
   getSettings,
@@ -35,9 +41,9 @@ const router = Router()
 router.use(adminOnly)
 
 router.get('/products', getAdminProducts)
-router.post('/products', withUploadFolder('products'), upload.array('images', 4), createAdminProduct)
-router.patch('/products/:id', withUploadFolder('products'), upload.array('images', 4), updateAdminProduct)
-router.post('/products/:id/update', withUploadFolder('products'), upload.array('images', 4), updateAdminProduct)
+router.post('/products', withUploadFolder('products'), upload.any(), createAdminProduct)
+router.patch('/products/:id', withUploadFolder('products'), upload.any(), updateAdminProduct)
+router.post('/products/:id/update', withUploadFolder('products'), upload.any(), updateAdminProduct)
 router.delete('/products/:id', deleteProduct)
 router.patch('/products/:id/toggle', toggleProduct)
 
@@ -64,6 +70,11 @@ router.post('/settings/hero/image', withUploadFolder('hero'), upload.single('her
 router.patch('/settings/marquee', patchMarquee)
 router.patch('/settings/contact', patchContact)
 router.patch('/settings/seo', patchSeo)
+
+router.get('/reviews', getAdminReviews)
+router.post('/reviews', createAdminReview)
+router.patch('/reviews/:id/approve', approveReview)
+router.delete('/reviews/:id', deleteReview)
 
 router.use('/analytics', analyticsRoutes)
 

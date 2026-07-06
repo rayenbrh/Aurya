@@ -16,6 +16,13 @@ const productSchema = new Schema({
   bgLabel: String,
   images: [String],
   tags: [String],
+  variants: [{
+    title: { type: String, required: true },
+    name: { type: String, required: true },
+    photo: String,
+    price: { type: Number, required: true, min: 0 },
+    stock: { type: Number, default: 0 },
+  }],
   isAvailable: { type: Boolean, default: true },
   isNew: { type: Boolean, default: false },
   isBestSeller: { type: Boolean, default: false },

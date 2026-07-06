@@ -1,4 +1,4 @@
-import { FiInstagram, FiFacebook, FiArrowRight } from 'react-icons/fi'
+import { FiInstagram, FiFacebook, FiArrowRight, FiPhone } from 'react-icons/fi'
 import { Link } from 'react-router-dom'
 
 export default function Footer() {
@@ -13,7 +13,14 @@ export default function Footer() {
           <p className="mt-5 max-w-[260px] text-[13px] leading-7 text-nude/55">
             Mobilier et décoration haut de gamme, imaginés pour les intérieurs tunisiens les plus exigeants.
           </p>
-          <div className="mt-6 flex gap-3">
+          <a
+            href="tel:+21693091290"
+            className="mt-5 flex items-center gap-2.5 text-nude/70 transition-colors hover:text-cream"
+          >
+            <FiPhone size={14} className="text-bark" />
+            <span className="font-josefin text-[12px] tracking-wide">+216 93 091 290</span>
+          </a>
+          <div className="mt-4 flex gap-3">
             <a href="#" aria-label="Instagram" className="flex h-9 w-9 items-center justify-center rounded-full border border-cream/15 text-cream/40 transition-colors hover:border-cream/50 hover:text-cream/90">
               <FiInstagram size={15} />
             </a>

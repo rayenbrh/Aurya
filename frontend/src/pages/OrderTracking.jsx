@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
+import { FiPhone } from 'react-icons/fi'
 import api from '../services/api'
 
 const STEPS = [
@@ -46,6 +47,12 @@ export default function OrderTracking() {
     <main className="min-h-[70vh] bg-parchment px-5 pb-20 pt-[96px] md:px-8">
       <div className="mx-auto max-w-[600px] rounded-[20px] bg-white p-8 shadow-soft md:p-10">
         <h1 className="font-cormorant text-3xl font-light text-espresso">Suivi commande</h1>
+        <a
+          href="tel:+21693091290"
+          className="mt-3 mb-1 inline-flex items-center gap-2 rounded-lg border border-rust/20 bg-rust/5 px-4 py-2 font-dm text-[12px] text-rust hover:bg-rust/10 transition-colors"
+        >
+          <FiPhone size={12} /> Support : +216 93 091 290
+        </a>
         <form
           className="mt-8 flex flex-col gap-3 sm:flex-row"
           onSubmit={async (e) => {

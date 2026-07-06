@@ -1,9 +1,11 @@
 import { motion, useReducedMotion } from 'framer-motion'
 import { FiHeart, FiShoppingBag } from 'react-icons/fi'
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { formatPrice } from '../../data/products'
 
 export default function ProductCard({ product, onOpen, onAdd, index = 0 }) {
+  const navigate = useNavigate()
   const reduce = useReducedMotion()
   const [wished, setWished] = useState(false)
   const catLabel = product.categoryName || product.category || ''
@@ -32,7 +34,7 @@ export default function ProductCard({ product, onOpen, onAdd, index = 0 }) {
       <div
         role="presentation"
         className="cursor-pointer"
-        onClick={() => onOpen?.(product)}
+        onClick={() => product.slug ? navigate(`/produits/${product.slug}`) : onOpen?.(product)}
       >
         <div
           className="relative h-[220px] w-full overflow-hidden"
@@ -59,13 +61,17 @@ export default function ProductCard({ product, onOpen, onAdd, index = 0 }) {
           <p className="font-josefin text-[8px] uppercase tracking-[0.22em] text-stone/60">{catLabel}</p>
           <p className="mt-1 font-cormorant text-[18px] font-light text-ink leading-snug">{product.name}</p>
           <div className="mt-2 flex items-center justify-between">
-            <p className="font-cormorant text-[22px] font-light text-olive">{formatPrice(product.price)}</p>
+            <p className="font-josefin text-[16px] font-medium tabular-nums text-olive">{formatPrice(product.price)}</p>
             <button
               type="button"
               aria-label="Ajouter au panier"
               onClick={(e) => {
                 e.stopPropagation()
-                onAdd?.(product)
+                if (product.variants?.length) {
+                  navigate(`/produits/${product.slug}`)
+                } else {
+                  onAdd?.(product)
+                }
               }}
               className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-bark text-cream transition-colors hover:bg-bark-light"
             >

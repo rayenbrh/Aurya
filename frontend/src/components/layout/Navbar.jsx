@@ -1,7 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
-import { FiShoppingBag } from 'react-icons/fi'
+import { FiShoppingBag, FiPhone } from 'react-icons/fi'
 import { useCart } from '../../context/CartContext'
 import { useAuth } from '../../context/AuthContext'
 import MobileNav from './MobileNav'
@@ -43,7 +43,7 @@ export default function Navbar({ onCartOpen }) {
         initial={{ y: -60, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.55, ease: [0.76, 0, 0.24, 1] }}
-        className="fixed left-0 right-0 top-0 z-50 h-[72px] border-b border-nude/40 transition-all duration-300"
+        className="fixed left-0 right-0 top-0 z-50 transition-all duration-300"
         style={{
           background: scrolled ? 'rgba(247,244,239,0.97)' : 'rgba(247,244,239,0.93)',
           backdropFilter: 'blur(20px)',
@@ -51,12 +51,35 @@ export default function Navbar({ onCartOpen }) {
           boxShadow: scrolled ? '0 1px 20px rgba(42,31,26,0.07)' : 'none',
         }}
       >
-        <div className="mx-auto flex h-full max-w-[1440px] items-center justify-between px-5 md:px-10">
+        {/* Support top bar — desktop only */}
+        <div className="hidden md:flex items-center justify-end gap-2 border-b border-nude/20 bg-ink/95 px-10 py-1.5">
+          <FiPhone size={9} className="text-bark" />
+          <a href="tel:+21693091290" className="font-josefin text-[8px] tracking-[0.14em] text-nude/55 hover:text-nude/90 transition-colors">
+            Support : +216 93 091 290
+          </a>
+        </div>
 
-          {/* Logo */}
+        {/* Nav row */}
+        <div className="mx-auto flex h-[72px] max-w-[1440px] items-center border-b border-nude/40 px-5 md:px-10">
+
+          {/* ── MOBILE: hamburger (far left) ── DESKTOP: hidden ── */}
+          <button
+            type="button"
+            aria-label={mobileOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
+            aria-expanded={mobileOpen}
+            aria-controls="mobile-nav-panel"
+            className="relative h-9 w-9 shrink-0 md:hidden"
+            onClick={() => setMobileOpen((v) => !v)}
+          >
+            <span className={`absolute left-[9px] top-[11px] h-[1.5px] w-[18px] bg-ink transition-all duration-300 ${mobileOpen ? 'translate-y-[6px] rotate-45' : ''}`} />
+            <span className={`absolute left-[9px] top-[17px] h-[1.5px] w-[18px] bg-ink transition-all duration-300 ${mobileOpen ? 'scale-x-0 opacity-0' : ''}`} />
+            <span className={`absolute left-[9px] top-[23px] h-[1.5px] w-[18px] bg-ink transition-all duration-300 ${mobileOpen ? '-translate-y-[6px] -rotate-45' : ''}`} />
+          </button>
+
+          {/* ── MOBILE: logo centered (flex-1 + justify-center) ── DESKTOP: logo left ── */}
           <Link
             to="/"
-            className="flex items-center gap-2.5 transition-opacity hover:opacity-75"
+            className="flex flex-1 items-center justify-center gap-2.5 transition-opacity hover:opacity-75 md:flex-none md:justify-start"
           >
             <img
               src="/logo.png"
@@ -68,8 +91,8 @@ export default function Navbar({ onCartOpen }) {
             <span className="font-cormorant text-[26px] italic text-ink">Aurya</span>
           </Link>
 
-          {/* Desktop nav */}
-          <nav className="hidden items-center gap-10 md:flex">
+          {/* ── DESKTOP only: center nav ── */}
+          <nav className="hidden flex-1 items-center justify-center gap-10 md:flex">
             {navLinks.map(({ to, label, end }) => (
               <NavLink
                 key={to}
@@ -88,32 +111,8 @@ export default function Navbar({ onCartOpen }) {
             ))}
           </nav>
 
-          {/* Right actions */}
-          <div className="flex items-center gap-2 md:gap-3">
-
-            {/* Cart */}
-            <button
-              type="button"
-              aria-label="Panier"
-              onClick={onCartOpen}
-              className="relative grid h-9 w-9 place-items-center text-stone transition-colors hover:text-bark"
-            >
-              <FiShoppingBag size={18} />
-              <AnimatePresence>
-                {totalItems > 0 && (
-                  <motion.span
-                    key={totalItems}
-                    initial={{ scale: 0, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    exit={{ scale: 0, opacity: 0 }}
-                    transition={{ type: 'spring', stiffness: 400, damping: 20 }}
-                    className="absolute -right-1 -top-1 grid h-4 w-4 place-items-center rounded-full bg-bark font-josefin text-[7px] text-cream"
-                  >
-                    {totalItems > 99 ? '99+' : totalItems}
-                  </motion.span>
-                )}
-              </AnimatePresence>
-            </button>
+          {/* ── Right side: cart (always) + auth (desktop only) ── */}
+          <div className="flex shrink-0 items-center gap-2 md:gap-3">
 
             {/* Auth — desktop only */}
             {!isAuthenticated ? (
@@ -156,18 +155,28 @@ export default function Navbar({ onCartOpen }) {
               </div>
             )}
 
-            {/* Mobile hamburger */}
+            {/* Cart — always visible */}
             <button
               type="button"
-              aria-label={mobileOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
-              aria-expanded={mobileOpen}
-              aria-controls="mobile-nav-panel"
-              className="relative h-9 w-9 md:hidden"
-              onClick={() => setMobileOpen((v) => !v)}
+              aria-label="Panier"
+              onClick={onCartOpen}
+              className="relative grid h-9 w-9 place-items-center text-stone transition-colors hover:text-bark"
             >
-              <span className={`absolute left-[9px] top-[11px] h-[1.5px] w-[18px] bg-ink transition-all duration-300 ${mobileOpen ? 'translate-y-[6px] rotate-45' : ''}`} />
-              <span className={`absolute left-[9px] top-[17px] h-[1.5px] w-[18px] bg-ink transition-all duration-300 ${mobileOpen ? 'scale-x-0 opacity-0' : ''}`} />
-              <span className={`absolute left-[9px] top-[23px] h-[1.5px] w-[18px] bg-ink transition-all duration-300 ${mobileOpen ? '-translate-y-[6px] -rotate-45' : ''}`} />
+              <FiShoppingBag size={18} />
+              <AnimatePresence>
+                {totalItems > 0 && (
+                  <motion.span
+                    key={totalItems}
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0, opacity: 0 }}
+                    transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+                    className="absolute -right-1 -top-1 grid h-4 w-4 place-items-center rounded-full bg-bark font-josefin text-[7px] text-cream"
+                  >
+                    {totalItems > 99 ? '99+' : totalItems}
+                  </motion.span>
+                )}
+              </AnimatePresence>
             </button>
           </div>
         </div>

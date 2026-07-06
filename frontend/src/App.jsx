@@ -27,8 +27,10 @@ const Categories = lazy(() => import('./pages/admin/Categories'))
 const Customers = lazy(() => import('./pages/admin/Customers'))
 const Analytics = lazy(() => import('./pages/admin/Analytics'))
 const Settings = lazy(() => import('./pages/admin/Settings'))
+const AdminReviews = lazy(() => import('./pages/admin/Reviews'))
 const OrderTracking = lazy(() => import('./pages/OrderTracking'))
 const Checkout = lazy(() => import('./pages/Checkout'))
+const ProductDetail = lazy(() => import('./pages/ProductDetail'))
 
 function Loading() {
   const location = useLocation()
@@ -74,6 +76,7 @@ function AppRoutes() {
             <Route path="/compte" element={<RequireAuth><Account /></RequireAuth>} />
             <Route path="/suivi" element={<OrderTracking />} />
             <Route path="/suivi/:orderNumber" element={<OrderTracking />} />
+            <Route path="/produits/:slug" element={<ProductDetail />} />
           </Route>
           <Route path="/connexion" element={<SignIn />} />
           <Route path="/inscription" element={<SignUp />} />
@@ -89,6 +92,7 @@ function AppRoutes() {
             <Route path="settings" element={<Settings />} />
             <Route path="analytics" element={<Analytics />} />
             <Route path="customers" element={<Customers />} />
+            <Route path="reviews" element={<AdminReviews />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
